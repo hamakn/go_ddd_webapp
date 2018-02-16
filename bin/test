@@ -1,0 +1,29 @@
+#!/bin/bash
+
+set -u
+
+echo -e "### GO LINT ###\n"
+
+golint -set_exit_status ./config...
+GO_LINT_RESULT=$?
+
+golint -set_exit_status ./src/...
+GO_LINT_SRC_RESULT=$?
+
+echo -e "\n### GO FMT ###\n"
+
+RESULT=$(gofmt -d -s ./config/ ./src/) && echo "${RESULT}"; ! [ -n "${RESULT}" ]
+GO_FMT_RESULT=$?
+
+echo -e "### GO VET ###\n"
+
+go vet ./config/... ./src/...
+GO_VET_RESULT=$?
+
+echo -e "\n### GO TEST ###\n"
+
+go test -race ./config/... ./src/...
+GO_TEST_RESULT=$?
+
+EXIT_RESULT=`expr $GO_LINT_RESULT + $GO_LINT_SRC_RESULT + $GO_FMT_RESULT + $GO_VET_RESULT + $GO_TEST_RESULT`
+exit $EXIT_RESULT

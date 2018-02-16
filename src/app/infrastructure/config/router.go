@@ -6,6 +6,7 @@ import (
 	"github.com/urfave/negroni"
 )
 
+// NewRouter returns Negroni router to handle http request
 func NewRouter() *negroni.Negroni {
 	router := mux.NewRouter()
 
