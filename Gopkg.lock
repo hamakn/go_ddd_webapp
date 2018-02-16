@@ -26,6 +26,12 @@
   version = "v1.6.1"
 
 [[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
+
+[[projects]]
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
@@ -51,13 +57,13 @@
 
 [[projects]]
   name = "google.golang.org/appengine"
-  packages = [".","aetest","internal","internal/app_identity","internal/base","internal/datastore","internal/log","internal/modules","internal/remote_api","internal/user","user"]
+  packages = [".","aetest","internal","internal/app_identity","internal/base","internal/datastore","internal/log","internal/modules","internal/remote_api","internal/user","log","user"]
   revision = "150dc57a1b433e64154302bdc40b6bb8aefa313a"
   version = "v1.0.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "947ee83a0b1f872b2403519579b5b3303f7711c9991cf295d4c5d00c9caf419b"
+  inputs-digest = "c4ec5396c7faae2a9117597ea4dcb8e402f1647dde88b5becda939bbe3e0212f"
   solver-name = "gps-cdcl"
   solver-version = 1
