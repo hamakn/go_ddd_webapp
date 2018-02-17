@@ -1,12 +1,13 @@
 package handler
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/hamakn/go_ddd_webapp/src/app/application"
 	"github.com/hamakn/go_ddd_webapp/src/app/interface/response"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -18,7 +19,17 @@ var (
 
 // GetUsers is handler to handle getting users request
 var GetUsers = createAppHandler(func(w http.ResponseWriter, r *http.Request) (*response.Response, *appError) {
-	return &response.Response{[]byte("this is response!!")}, nil
+	users, err := application.GetUsers(r.Context())
+	if err != nil {
+		return nil, &appError{errors.Wrap(err, ErrGetUsers.Error()), "internal server error", http.StatusInternalServerError}
+	}
+
+	res, err := response.GetUsersResponse(users)
+	if err != nil {
+		return nil, &appError{errors.Wrap(err, ErrGetUsers.Error()), "internal server error", http.StatusInternalServerError}
+	}
+
+	return res, nil
 })
 
 // GetUser is handler to handle getting user request

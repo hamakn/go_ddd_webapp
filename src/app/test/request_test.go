@@ -1,9 +1,12 @@
 package test
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/hamakn/go_ddd_webapp/src/app/domain/user"
 
 	"github.com/hamakn/go_ddd_webapp/src/app/infrastructure/config"
 	"github.com/stretchr/testify/require"
@@ -24,7 +27,11 @@ func TestGetUsers(t *testing.T) {
 	config.NewRouter().ServeHTTP(res, req)
 	require.Equal(t, http.StatusOK, res.Code)
 
-	require.Equal(t, res.Body.String(), "this is response!!")
+	users := &[]*user.User{}
+	err = json.NewDecoder(res.Body).Decode(users)
+	require.Nil(t, err)
+
+	require.Equal(t, (*users)[0].ID, 42)
 }
 
 func TestGetUser(t *testing.T) {
