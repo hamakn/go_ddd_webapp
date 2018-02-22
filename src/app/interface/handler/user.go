@@ -18,22 +18,26 @@ var (
 )
 
 // GetUsers is handler to handle getting users request
-var GetUsers = createAppHandler(func(w http.ResponseWriter, r *http.Request) (*response.Response, *appError) {
-	users, err := application.GetUsers(r.Context())
-	if err != nil {
-		return nil, &appError{errors.Wrap(err, ErrGetUsers.Error()), "internal server error", http.StatusInternalServerError}
-	}
+func GetUsers() func(http.ResponseWriter, *http.Request) {
+	return createAppHandler(func(w http.ResponseWriter, r *http.Request) (*response.Response, *appError) {
+		users, err := application.GetUsers(r.Context())
+		if err != nil {
+			return nil, &appError{errors.Wrap(err, ErrGetUsers.Error()), "internal server error", http.StatusInternalServerError}
+		}
 
-	res, err := response.GetUsersResponse(users)
-	if err != nil {
-		return nil, &appError{errors.Wrap(err, ErrGetUsers.Error()), "internal server error", http.StatusInternalServerError}
-	}
+		res, err := response.GetUsersResponse(users)
+		if err != nil {
+			return nil, &appError{errors.Wrap(err, ErrGetUsers.Error()), "internal server error", http.StatusInternalServerError}
+		}
 
-	return res, nil
-})
+		return res, nil
+	})
+}
 
 // GetUser is handler to handle getting user request
-var GetUser = createAppHandler(func(w http.ResponseWriter, r *http.Request) (*response.Response, *appError) {
-	vars := mux.Vars(r)
-	return nil, &appError{ErrGetUser, fmt.Sprintf("key: %v not found", vars["key"]), http.StatusNotFound}
-})
+func GetUser() func(http.ResponseWriter, *http.Request) {
+	return createAppHandler(func(w http.ResponseWriter, r *http.Request) (*response.Response, *appError) {
+		vars := mux.Vars(r)
+		return nil, &appError{ErrGetUser, fmt.Sprintf("key: %v not found", vars["key"]), http.StatusNotFound}
+	})
+}
