@@ -6,7 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hamakn/go_ddd_webapp/src/app/application"
-	"github.com/hamakn/go_ddd_webapp/src/app/interface/response"
+	"github.com/hamakn/go_ddd_webapp/src/app/interfaces/response"
 	"github.com/pkg/errors"
 )
 

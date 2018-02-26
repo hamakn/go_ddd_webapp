@@ -2,8 +2,8 @@ package config
 
 import (
 	"github.com/gorilla/mux"
-	"github.com/hamakn/go_ddd_webapp/src/app/interface/handler"
-	"github.com/hamakn/go_ddd_webapp/src/app/interface/middleware"
+	"github.com/hamakn/go_ddd_webapp/src/app/interfaces/handler"
+	"github.com/hamakn/go_ddd_webapp/src/app/interfaces/middleware"
 	"github.com/urfave/negroni"
 )
 

@@ -5,7 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/hamakn/go_ddd_webapp/src/app/interface/response"
+	"github.com/hamakn/go_ddd_webapp/src/app/interfaces/response"
 	"google.golang.org/appengine/log"
 )
 
