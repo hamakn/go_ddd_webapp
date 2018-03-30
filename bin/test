@@ -22,7 +22,7 @@ GO_VET_RESULT=$?
 
 echo -e "\n### GO TEST ###\n"
 
-go test -race ./config/... ./src/...
+goapp test ./config/... ./src/...
 GO_TEST_RESULT=$?
 
 EXIT_RESULT=`expr $GO_LINT_RESULT + $GO_LINT_SRC_RESULT + $GO_FMT_RESULT + $GO_VET_RESULT + $GO_TEST_RESULT`
