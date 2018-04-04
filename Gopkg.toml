@@ -19,3 +19,7 @@
 #  name = "github.com/x/y"
 #  version = "2.4.0"
 
+
+[[constraint]]
+  name = "gopkg.in/yaml.v2"
+  version = "v2.2.1"

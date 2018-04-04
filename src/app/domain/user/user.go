@@ -4,7 +4,7 @@ import "time"
 
 // User Entity
 type User struct {
-	ID        int       `datastore:"-"`
+	ID        int64     `yaml:"id" datastore:"-" goon:"id"`
 	Email     string    `yaml:"email" validate:"required,email"`
 	NickName  string    `yaml:"nickname" validate:"required"`
 	Age       int       `yaml:"age" validate:"required,min=0,max=120"`

@@ -1,0 +1,13 @@
+---
+- id: 1
+  email: foo@hamakn.test
+  nickName: foo
+  age: 17
+  created_at: "2018-02-17T20:00:00+09:00"
+  updated_at: "2018-02-17T20:00:00+09:00"
+- id: 2
+  email: bar@hamakn.test
+  nickName: bar
+  age: 37
+  created_at: "2018-02-17T20:00:00+09:00"
+  updated_at: "2018-02-17T20:00:00+09:00"

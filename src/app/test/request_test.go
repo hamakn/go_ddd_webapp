@@ -31,7 +31,7 @@ func TestGetUsers(t *testing.T) {
 	err = json.NewDecoder(res.Body).Decode(users)
 	require.Nil(t, err)
 
-	require.Equal(t, (*users)[0].ID, 42)
+	require.Equal(t, 42, int((*users)[0].ID))
 }
 
 func TestGetUser(t *testing.T) {
