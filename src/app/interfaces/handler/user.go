@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/hamakn/go_ddd_webapp/src/app/application"
@@ -38,6 +38,24 @@ func GetUsers() func(http.ResponseWriter, *http.Request) {
 func GetUser() func(http.ResponseWriter, *http.Request) {
 	return createAppHandler(func(w http.ResponseWriter, r *http.Request) (*response.Response, *appError) {
 		vars := mux.Vars(r)
-		return nil, &appError{ErrGetUser, fmt.Sprintf("key: %v not found", vars["key"]), http.StatusNotFound}
+		id, err := strconv.ParseInt(vars["id"], 10, 64)
+		if err != nil {
+			return nil, &appError{err, "params id was wrong", http.StatusBadRequest}
+		}
+
+		user, err := application.GetUserByID(r.Context(), id)
+		if err != nil {
+			if err.Error() == "datastore: no such entity" {
+				return nil, &appError{errors.Wrap(err, ErrGetUser.Error()), "Not Found", http.StatusNotFound}
+			}
+			return nil, &appError{errors.Wrap(err, ErrGetUser.Error()), "internal server error", http.StatusInternalServerError}
+		}
+
+		res, err := response.GetUserResponse(user)
+		if err != nil {
+			return nil, &appError{errors.Wrap(err, ErrGetUser.Error()), "internal server error", http.StatusInternalServerError}
+		}
+
+		return res, nil
 	})
 }

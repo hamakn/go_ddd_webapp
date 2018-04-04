@@ -1,7 +1,9 @@
 package test
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -24,10 +26,7 @@ func TestGetUsers(t *testing.T) {
 	req, err := inst.NewRequest("GET", "/users/", nil)
 	require.Nil(t, err)
 
-	// Load fixture
-	ctx := appengine.NewContext(req)
-	r := user.NewRepository(ctx)
-	_, err = r.CreateFixture()
+	err = loadUserFixture(appengine.NewContext(req))
 	require.Nil(t, err)
 
 	res := httptest.NewRecorder()
@@ -48,13 +47,40 @@ func TestGetUser(t *testing.T) {
 	require.Nil(t, err)
 	defer inst.Close()
 
-	key := "42"
-	req, err := inst.NewRequest("GET", "/users/"+key, nil)
+	req, err := inst.NewRequest("GET", "/dummy", nil)
 	require.Nil(t, err)
 
-	res := httptest.NewRecorder()
-	config.NewRouter().ServeHTTP(res, req)
-	require.Equal(t, http.StatusNotFound, res.Code)
+	err = loadUserFixture(appengine.NewContext(req))
+	require.Nil(t, err)
 
-	require.Equal(t, res.Body.String(), "{\"error\":\"key: "+key+" not found\"}")
+	testCases := []struct {
+		UserID       string
+		HasError     bool
+		ResponseCode int
+	}{
+		{"1", false, 200},
+		{"42", true, 404},
+		{"bad", true, 400},
+	}
+
+	for _, testCase := range testCases {
+		req, err := inst.NewRequest("GET", "/users/"+testCase.UserID, nil)
+		require.Nil(t, err)
+
+		res := httptest.NewRecorder()
+		config.NewRouter().ServeHTTP(res, req)
+
+		require.Equal(t, testCase.ResponseCode, res.Code)
+		if !testCase.HasError {
+			u := &user.User{}
+			json.NewDecoder(res.Body).Decode(u)
+			require.Equal(t, testCase.UserID, fmt.Sprint(u.ID))
+		}
+	}
+}
+
+func loadUserFixture(ctx context.Context) error {
+	r := user.NewRepository(ctx)
+	_, err := r.CreateFixture()
+	return err
 }

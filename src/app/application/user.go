@@ -10,6 +10,8 @@ import (
 var (
 	// ErrGetUsers is error on GetUsers
 	ErrGetUsers = errors.New("app-application-user: GetUsers failed")
+	// ErrGetUserByID is error on GetUser
+	ErrGetUserByID = errors.New("app-application-user: GetUserByID failed")
 )
 
 // GetUsers returns users
@@ -20,4 +22,17 @@ func GetUsers(ctx context.Context) ([]*user.User, error) {
 	}
 
 	return users, nil
+}
+
+// GetUserByID returns user specified by id
+func GetUserByID(ctx context.Context, id int64) (*user.User, error) {
+	user, err := user.NewRepository(ctx).GetByID(id)
+	if err != nil {
+		if err.Error() == "datastore: no such entity" {
+			return nil, err
+		}
+		return nil, errors.Wrap(err, ErrGetUserByID.Error())
+	}
+
+	return user, nil
 }

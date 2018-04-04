@@ -8,3 +8,8 @@ import (
 func GetUsersResponse(users []*user.User) (*Response, error) {
 	return newResponse(users)
 }
+
+// GetUserResponse returns response of user
+func GetUserResponse(user *user.User) (*Response, error) {
+	return newResponse(user)
+}

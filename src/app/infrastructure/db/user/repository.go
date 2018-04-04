@@ -34,6 +34,16 @@ func (r *repository) GetAll() ([]*user.User, error) {
 	return users, nil
 }
 
+func (r *repository) GetByID(id int64) (*user.User, error) {
+	user := &user.User{ID: id}
+	err := db.Get(r.Ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func (r *repository) CreateFixture() ([]*user.User, error) {
 	users := []*user.User{}
 

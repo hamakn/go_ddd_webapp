@@ -13,6 +13,12 @@ func GetAll(ctx context.Context, q *datastore.Query, dst interface{}) ([]*datast
 	return g.GetAll(q, dst)
 }
 
+// Get get the entity based on dst's key
+func Get(ctx context.Context, dst interface{}) error {
+	g := goon.FromContext(ctx)
+	return g.Get(dst)
+}
+
 // PutMulti puts src objects to db
 func PutMulti(ctx context.Context, src interface{}) ([]*datastore.Key, error) {
 	g := goon.FromContext(ctx)
