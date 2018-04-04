@@ -4,6 +4,7 @@ import "context"
 
 // Repository is interface of user repository
 type Repository interface {
+	GetAll() ([]*User, error)
 	CreateFixture() ([]*User, error)
 }
 

@@ -2,22 +2,22 @@ package application
 
 import (
 	"context"
-	"time"
 
 	"github.com/hamakn/go_ddd_webapp/src/app/domain/user"
+	"github.com/pkg/errors"
+)
+
+var (
+	// ErrGetUsers is error on GetUsers
+	ErrGetUsers = errors.New("app-application-user: GetUsers failed")
 )
 
 // GetUsers returns users
 func GetUsers(ctx context.Context) ([]*user.User, error) {
-	users := []*user.User{
-		{
-			ID:        42,
-			Email:     "foobar@hamakn.test",
-			NickName:  "foobar",
-			Age:       17,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		},
+	users, err := user.NewRepository(ctx).GetAll()
+	if err != nil {
+		return nil, errors.Wrap(err, ErrGetUsers.Error())
 	}
+
 	return users, nil
 }

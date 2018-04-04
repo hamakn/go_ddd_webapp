@@ -10,6 +10,7 @@ import (
 
 	"github.com/hamakn/go_ddd_webapp/src/app/infrastructure/config"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/appengine"
 	"google.golang.org/appengine/aetest"
 )
 
@@ -23,15 +24,21 @@ func TestGetUsers(t *testing.T) {
 	req, err := inst.NewRequest("GET", "/users/", nil)
 	require.Nil(t, err)
 
+	// Load fixture
+	ctx := appengine.NewContext(req)
+	r := user.NewRepository(ctx)
+	_, err = r.CreateFixture()
+	require.Nil(t, err)
+
 	res := httptest.NewRecorder()
 	config.NewRouter().ServeHTTP(res, req)
 	require.Equal(t, http.StatusOK, res.Code)
 
-	users := &[]*user.User{}
-	err = json.NewDecoder(res.Body).Decode(users)
+	users := []*user.User{}
+	err = json.NewDecoder(res.Body).Decode(&users)
 	require.Nil(t, err)
 
-	require.Equal(t, 42, int((*users)[0].ID))
+	require.Equal(t, 2, len(users))
 }
 
 func TestGetUser(t *testing.T) {

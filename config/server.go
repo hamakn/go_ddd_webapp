@@ -9,6 +9,7 @@ import (
 
 func init() {
 	setTimezone()
+	injectDependencies()
 
 	http.Handle("/", config.NewRouter())
 }
