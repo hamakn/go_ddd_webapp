@@ -19,6 +19,13 @@ func Get(ctx context.Context, dst interface{}) error {
 	return g.Get(dst)
 }
 
+// Put puts src object to db
+func Put(ctx context.Context, src interface{}) error {
+	g := goon.FromContext(ctx)
+	_, err := g.Put(src)
+	return err
+}
+
 // PutMulti puts src objects to db
 func PutMulti(ctx context.Context, src interface{}) ([]*datastore.Key, error) {
 	g := goon.FromContext(ctx)

@@ -2,8 +2,10 @@ package user
 
 import (
 	"context"
+	"errors"
 
 	"github.com/hamakn/go_ddd_webapp/src/app/domain/user"
+	appDatastore "github.com/hamakn/go_ddd_webapp/src/app/infrastructure/datastore"
 	"github.com/hamakn/go_ddd_webapp/src/app/infrastructure/db"
 	"github.com/hamakn/go_ddd_webapp/src/app/infrastructure/fixture"
 	"google.golang.org/appengine/datastore"
@@ -42,6 +44,31 @@ func (r *repository) GetByID(id int64) (*user.User, error) {
 	}
 
 	return user, nil
+}
+
+func (r *repository) Create(u *user.User) error {
+	return appDatastore.RunInTransaction(r.Ctx, func(tctx context.Context) error {
+		// check email uniqueness
+		if !canTakeUserEmail(tctx, u.Email) {
+			return errors.New("app-infra-db-user-repository: Email cannot take")
+		}
+
+		err := db.Put(tctx, u)
+		if err != nil {
+			return err
+		}
+
+		// take email
+		userEmail := createUserEmail(u)
+		err = takeUserEmail(tctx, userEmail)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	},
+		true, // XG
+	)
 }
 
 func (r *repository) CreateFixture() ([]*user.User, error) {
