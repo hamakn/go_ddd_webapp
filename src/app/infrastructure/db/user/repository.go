@@ -53,6 +53,11 @@ func (r *repository) Create(u *user.User) error {
 			return errors.New("app-infra-db-user-repository: Email cannot take")
 		}
 
+		// check nickname uniquness
+		if !canTakeUserScreenName(tctx, u.ScreenName) {
+			return errors.New("app-infra-db-user-repository: ScreenName cannot take")
+		}
+
 		err := db.Put(tctx, u)
 		if err != nil {
 			return err
@@ -61,6 +66,13 @@ func (r *repository) Create(u *user.User) error {
 		// take email
 		userEmail := createUserEmail(u)
 		err = takeUserEmail(tctx, userEmail)
+		if err != nil {
+			return err
+		}
+
+		// take nickname
+		userScreenName := createUserScreenName(u)
+		err = takeUserScreenName(tctx, userScreenName)
 		if err != nil {
 			return err
 		}

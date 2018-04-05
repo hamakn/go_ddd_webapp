@@ -26,6 +26,21 @@ func TestCreateDup(t *testing.T) {
 	// 2nd time
 	err = r.Create(u)
 	require.Contains(t, err.Error(), "Email cannot take")
+
+	// same email
+	u = f.Create("hoge@hamakn.test", "fuga", 42)
+	err = r.Create(u)
+	require.Contains(t, err.Error(), "Email cannot take")
+
+	// same screen name
+	u = f.Create("fuga@hamakn.test", "hoge", 99)
+	err = r.Create(u)
+	require.Contains(t, err.Error(), "ScreenName cannot take")
+
+	// another user
+	u = f.Create("fuga@hamakn.test", "fuga", 24)
+	err = r.Create(u)
+	require.Nil(t, err)
 }
 
 func TestCreateFixture(t *testing.T) {
