@@ -91,9 +91,9 @@ func (r *repository) CreateFixture() ([]*user.User, error) {
 		return nil, err
 	}
 
-	_, err = db.PutMulti(r.Ctx, users)
-	if err != nil {
-		return nil, err
+	// NOTE: run in out of txn by datastore (25 entities) limit
+	for _, u := range users {
+		r.Create(u)
 	}
 
 	return users, nil

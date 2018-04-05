@@ -16,31 +16,63 @@ func TestCreateDup(t *testing.T) {
 	require.Nil(t, err)
 
 	f := user.NewFactory()
-	u := f.Create("hoge@hamakn.test", "hoge", 24)
 	r := NewRepository(ctx)
-
-	// 1st time
-	err = r.Create(u)
+	_, err = r.CreateFixture()
 	require.Nil(t, err)
 
-	// 2nd time
-	err = r.Create(u)
-	require.Contains(t, err.Error(), "Email cannot take")
+	testCases := []struct {
+		email        string
+		screenName   string
+		age          int
+		hasError     bool
+		errorMessage string
+	}{
+		{
+			// taken email and screen name
+			"foo@hamakn.test",
+			"foo",
+			24,
+			true,
+			"Email cannot take",
+		},
+		{
+			// taken email
+			"foo@hamakn.test",
+			"new_name",
+			25,
+			true,
+			"Email cannot take",
+		},
+		{
+			// taken screen name
+			"new@hamakn.test",
+			"foo",
+			26,
+			true,
+			"ScreenName cannot take",
+		},
+		{
+			// ok
+			"new@hamakn.test",
+			"new",
+			17,
+			false,
+			"",
+		},
+	}
 
-	// same email
-	u = f.Create("hoge@hamakn.test", "fuga", 42)
-	err = r.Create(u)
-	require.Contains(t, err.Error(), "Email cannot take")
+	for _, testCase := range testCases {
+		u := f.Create(testCase.email, testCase.screenName, testCase.age)
+		err := r.Create(u)
 
-	// same screen name
-	u = f.Create("fuga@hamakn.test", "hoge", 99)
-	err = r.Create(u)
-	require.Contains(t, err.Error(), "ScreenName cannot take")
+		if testCase.hasError {
+			require.NotNil(t, err)
+			require.Contains(t, err.Error(), testCase.errorMessage)
 
-	// another user
-	u = f.Create("fuga@hamakn.test", "fuga", 24)
-	err = r.Create(u)
-	require.Nil(t, err)
+		} else {
+			require.Nil(t, err)
+		}
+	}
 }
 
 func TestCreateFixture(t *testing.T) {
