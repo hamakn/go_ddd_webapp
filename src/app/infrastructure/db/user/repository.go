@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"time"
 
 	"github.com/hamakn/go_ddd_webapp/src/app/domain/user"
 	appDatastore "github.com/hamakn/go_ddd_webapp/src/app/infrastructure/datastore"
@@ -107,6 +108,9 @@ func (r *repository) Update(u *user.User) error {
 				return err
 			}
 		}
+
+		// TODO: rollback if error occurred
+		u.UpdatedAt = time.Now()
 
 		err = db.Put(tctx, u)
 		if err != nil {

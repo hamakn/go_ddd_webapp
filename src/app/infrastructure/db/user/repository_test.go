@@ -2,6 +2,7 @@ package user
 
 import (
 	"testing"
+	"time"
 
 	"github.com/hamakn/go_ddd_webapp/src/app/domain/user"
 	"github.com/hamakn/go_ddd_webapp/src/app/infrastructure/environments"
@@ -84,6 +85,8 @@ func TestUpdate(t *testing.T) {
 	_, err = r.CreateFixture()
 	require.Nil(t, err)
 
+	now := time.Now()
+
 	testCases := []struct {
 		userID     int64
 		email      string
@@ -132,8 +135,10 @@ func TestUpdate(t *testing.T) {
 
 		oldEmail := u.Email
 		oldScreenName := u.ScreenName
+		newAge := 99
 		u.Email = testCase.email
 		u.ScreenName = testCase.screenName
+		u.Age = newAge
 		err = r.Update(u)
 
 		if testCase.hasError {
@@ -142,6 +147,13 @@ func TestUpdate(t *testing.T) {
 
 		} else {
 			require.Nil(t, err)
+
+			u, err := r.GetByID(testCase.userID)
+			require.Nil(t, err)
+			require.Equal(t, testCase.email, u.Email)
+			require.Equal(t, testCase.screenName, u.ScreenName)
+			require.Equal(t, newAge, u.Age)
+			require.Equal(t, true, u.UpdatedAt.After(now))
 
 			require.Equal(t, true, canTakeUserEmail(ctx, oldEmail))
 			require.Equal(t, false, canTakeUserEmail(ctx, testCase.email))
