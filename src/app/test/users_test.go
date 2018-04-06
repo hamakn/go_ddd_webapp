@@ -127,7 +127,7 @@ func TestCreateUser(t *testing.T) {
 			// NG json: email taken user
 			"{\"email\":\"foo@hamakn.test\",\"screen_name\":\"new_foo\",\"age\":17}",
 			true,
-			500,
+			422,
 		},
 	}
 

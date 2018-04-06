@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"errors"
 
 	"github.com/hamakn/go_ddd_webapp/src/app/domain/user"
 	appDatastore "github.com/hamakn/go_ddd_webapp/src/app/infrastructure/datastore"
@@ -37,25 +36,28 @@ func (r *repository) GetAll() ([]*user.User, error) {
 }
 
 func (r *repository) GetByID(id int64) (*user.User, error) {
-	user := &user.User{ID: id}
-	err := db.Get(r.Ctx, user)
+	u := &user.User{ID: id}
+	err := db.Get(r.Ctx, u)
 	if err != nil {
+		if err.Error() == "datastore: no such entity" {
+			return nil, user.ErrNoSuchEntity
+		}
 		return nil, err
 	}
 
-	return user, nil
+	return u, nil
 }
 
 func (r *repository) Create(u *user.User) error {
 	return appDatastore.RunInTransaction(r.Ctx, func(tctx context.Context) error {
 		// check email uniqueness
 		if !canTakeUserEmail(tctx, u.Email) {
-			return errors.New("app-infra-db-user-repository: Email cannot take")
+			return user.ErrEmailCannotTake
 		}
 
 		// check nickname uniquness
 		if !canTakeUserScreenName(tctx, u.ScreenName) {
-			return errors.New("app-infra-db-user-repository: ScreenName cannot take")
+			return user.ErrScreenNameCannotTake
 		}
 
 		err := db.Put(tctx, u)
@@ -67,14 +69,14 @@ func (r *repository) Create(u *user.User) error {
 		userEmail := createUserEmail(u)
 		err = takeUserEmail(tctx, userEmail)
 		if err != nil {
-			return err
+			return user.ErrEmailCannotTake
 		}
 
 		// take nickname
 		userScreenName := createUserScreenName(u)
 		err = takeUserScreenName(tctx, userScreenName)
 		if err != nil {
-			return err
+			return user.ErrScreenNameCannotTake
 		}
 
 		return nil

@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hamakn/go_ddd_webapp/src/app/application"
 	"github.com/hamakn/go_ddd_webapp/src/app/application/request"
+	"github.com/hamakn/go_ddd_webapp/src/app/domain/user"
 	"github.com/hamakn/go_ddd_webapp/src/app/interfaces/response"
 	"github.com/pkg/errors"
 )
@@ -48,10 +49,12 @@ func GetUser() func(http.ResponseWriter, *http.Request) {
 
 		u, err := application.GetUserByID(r.Context(), id)
 		if err != nil {
-			if err.Error() == "datastore: no such entity" {
+			switch errors.Cause(err) {
+			case user.ErrNoSuchEntity:
 				return nil, &appError{errors.Wrap(err, ErrGetUser.Error()), "Not Found", http.StatusNotFound}
+			default:
+				return nil, &appError{errors.Wrap(err, ErrGetUser.Error()), "internal server error", http.StatusInternalServerError}
 			}
-			return nil, &appError{errors.Wrap(err, ErrGetUser.Error()), "internal server error", http.StatusInternalServerError}
 		}
 
 		res, err := response.UserResponse(u)
@@ -74,7 +77,12 @@ func CreateUser() func(http.ResponseWriter, *http.Request) {
 
 		u, err := application.CreateUser(r.Context(), req)
 		if err != nil {
-			return nil, &appError{errors.Wrap(err, ErrCreateUser.Error()), "internal server error", http.StatusInternalServerError}
+			switch errors.Cause(err) {
+			case user.ErrEmailCannotTake, user.ErrScreenNameCannotTake:
+				return nil, &appError{errors.Wrap(err, ErrCreateUser.Error()), "Unprocessable Entity", http.StatusUnprocessableEntity}
+			default:
+				return nil, &appError{errors.Wrap(err, ErrCreateUser.Error()), "internal server error", http.StatusInternalServerError}
+			}
 		}
 
 		res, err := response.UserResponse(u)
