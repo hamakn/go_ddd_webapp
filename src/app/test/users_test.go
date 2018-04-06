@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
+	"github.com/hamakn/go_ddd_webapp/src/app/application/request"
 	"github.com/hamakn/go_ddd_webapp/src/app/domain/user"
 
 	"github.com/hamakn/go_ddd_webapp/src/app/infrastructure/config"
@@ -75,6 +77,84 @@ func TestGetUser(t *testing.T) {
 			u := &user.User{}
 			json.NewDecoder(res.Body).Decode(u)
 			require.Equal(t, testCase.UserID, fmt.Sprint(u.ID))
+		}
+	}
+}
+
+func TestCreateUser(t *testing.T) {
+	inst, err := aetest.NewInstance(&aetest.Options{
+		StronglyConsistentDatastore: true,
+	})
+	require.Nil(t, err)
+	defer inst.Close()
+
+	req, err := inst.NewRequest("GET", "/dummy", nil)
+	require.Nil(t, err)
+
+	err = loadUserFixture(appengine.NewContext(req))
+	require.Nil(t, err)
+
+	testCases := []struct {
+		PostJSON     string
+		HasError     bool
+		ResponseCode int
+	}{
+		{
+			// OK json
+			"{\"email\":\"new@hamakn.test\",\"screen_name\":\"new_name\",\"age\":17}",
+			false,
+			200,
+		},
+		{
+			// NG json: broken json
+			"{",
+			true,
+			400,
+		},
+		{
+			// NG json: no required field
+			"{}",
+			true,
+			400,
+		},
+		{
+			// NG json: validation failed
+			"{\"email\":\"new@hamakn.test\",\"screen_name\":\"たろう\",\"age\":17}",
+			true,
+			400,
+		},
+		{
+			// NG json: email taken user
+			"{\"email\":\"foo@hamakn.test\",\"screen_name\":\"new_foo\",\"age\":17}",
+			true,
+			500,
+		},
+	}
+
+	for _, testCase := range testCases {
+		req, err := inst.NewRequest("POST", "/users/", strings.NewReader(testCase.PostJSON))
+		require.Nil(t, err)
+
+		res := httptest.NewRecorder()
+		config.NewRouter().ServeHTTP(res, req)
+
+		require.Equal(t, testCase.ResponseCode, res.Code)
+
+		if !testCase.HasError {
+			ctx := appengine.NewContext(req)
+
+			u := &user.User{}
+			json.NewDecoder(res.Body).Decode(&u)
+
+			r := request.CreateUserRequest{}
+			json.NewDecoder(strings.NewReader(testCase.PostJSON)).Decode(&r)
+
+			dbu, err := user.NewRepository(ctx).GetByID(u.ID)
+			require.Nil(t, err)
+
+			require.Equal(t, *r.Email, dbu.Email)
+			require.Equal(t, *r.ScreenName, dbu.ScreenName)
+			require.Equal(t, *r.Age, dbu.Age)
 		}
 	}
 }

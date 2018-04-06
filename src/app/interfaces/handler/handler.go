@@ -1,12 +1,14 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/pkg/errors"
 
 	"github.com/hamakn/go_ddd_webapp/src/app/interfaces/response"
 	"google.golang.org/appengine/log"
+	validator "gopkg.in/go-playground/validator.v9"
 )
 
 type appError struct {
@@ -61,4 +63,14 @@ func isEmptyResponse(res *response.Response) bool {
 		return true
 	}
 	return false
+}
+
+func parseRequest(r *http.Request, request interface{}) error {
+	err := json.NewDecoder(r.Body).Decode(request)
+	if err != nil {
+		return err
+	}
+
+	v := validator.New()
+	return v.Struct(request)
 }
