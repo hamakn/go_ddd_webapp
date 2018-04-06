@@ -18,7 +18,7 @@ type userEmail struct {
 	CreatedAt   time.Time
 }
 
-func createUserEmail(u *user.User) *userEmail {
+func newUserEmail(u *user.User) *userEmail {
 	now := time.Now()
 	return &userEmail{
 		HashedEmail: hashEmail(u.Email),

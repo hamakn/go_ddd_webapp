@@ -66,14 +66,14 @@ func (r *repository) Create(u *user.User) error {
 		}
 
 		// take email
-		userEmail := createUserEmail(u)
+		userEmail := newUserEmail(u)
 		err = takeUserEmail(tctx, userEmail)
 		if err != nil {
 			return user.ErrEmailCannotTake
 		}
 
 		// take screen_name
-		userScreenName := createUserScreenName(u)
+		userScreenName := newUserScreenName(u)
 		err = takeUserScreenName(tctx, userScreenName)
 		if err != nil {
 			return user.ErrScreenNameCannotTake

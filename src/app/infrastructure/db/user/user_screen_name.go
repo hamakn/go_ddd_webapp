@@ -15,7 +15,7 @@ type userScreenName struct {
 	CreatedAt  time.Time
 }
 
-func createUserScreenName(u *user.User) *userScreenName {
+func newUserScreenName(u *user.User) *userScreenName {
 	now := time.Now()
 	return &userScreenName{
 		ScreenName: u.ScreenName,
