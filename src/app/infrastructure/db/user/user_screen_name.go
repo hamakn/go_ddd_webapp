@@ -8,7 +8,7 @@ import (
 	"google.golang.org/appengine/datastore"
 )
 
-// userScreenName Entity for nickname uniqueness constraints
+// userScreenName Entity for screen_name uniqueness constraints
 type userScreenName struct {
 	ScreenName string
 	UserID     int64
@@ -24,12 +24,12 @@ func createUserScreenName(u *user.User) *userScreenName {
 	}
 }
 
-func userScreenNameKey(ctx context.Context, nickname string) *datastore.Key {
-	return datastore.NewKey(ctx, "UserScreenName", nickname, 0, nil)
+func userScreenNameKey(ctx context.Context, screenName string) *datastore.Key {
+	return datastore.NewKey(ctx, "UserScreenName", screenName, 0, nil)
 }
 
-func canTakeUserScreenName(ctx context.Context, nickname string) bool {
-	k := userScreenNameKey(ctx, nickname)
+func canTakeUserScreenName(ctx context.Context, screenName string) bool {
+	k := userScreenNameKey(ctx, screenName)
 	err := datastore.Get(ctx, k, &userScreenName{})
 	if err != nil && err.Error() == "datastore: no such entity" {
 		return true

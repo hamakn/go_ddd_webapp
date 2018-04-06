@@ -55,7 +55,7 @@ func (r *repository) Create(u *user.User) error {
 			return user.ErrEmailCannotTake
 		}
 
-		// check nickname uniquness
+		// check screen_name uniquness
 		if !canTakeUserScreenName(tctx, u.ScreenName) {
 			return user.ErrScreenNameCannotTake
 		}
@@ -72,7 +72,7 @@ func (r *repository) Create(u *user.User) error {
 			return user.ErrEmailCannotTake
 		}
 
-		// take nickname
+		// take screen_name
 		userScreenName := createUserScreenName(u)
 		err = takeUserScreenName(tctx, userScreenName)
 		if err != nil {
