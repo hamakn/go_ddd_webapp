@@ -6,7 +6,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hamakn/go_ddd_webapp/src/app/application"
-	"github.com/hamakn/go_ddd_webapp/src/app/application/request"
 	"github.com/hamakn/go_ddd_webapp/src/app/domain/user"
 	"github.com/hamakn/go_ddd_webapp/src/app/interfaces/response"
 	"github.com/pkg/errors"
@@ -71,7 +70,7 @@ func GetUser() func(http.ResponseWriter, *http.Request) {
 // CreateUser is handler to handle create user request
 func CreateUser() func(http.ResponseWriter, *http.Request) {
 	return createAppHandler(func(w http.ResponseWriter, r *http.Request) (*response.Response, *appError) {
-		req := request.CreateUserRequest{}
+		req := user.CreateUserValue{}
 		err := parseRequest(r, &req)
 		if err != nil {
 			return nil, &appError{errors.Wrap(err, ErrCreateUser.Error()), "Bad Request", http.StatusBadRequest}
@@ -105,13 +104,10 @@ func UpdateUser() func(http.ResponseWriter, *http.Request) {
 			return nil, &appError{err, "Bad Request", http.StatusBadRequest}
 		}
 
-		req := request.UpdateUserRequest{}
+		req := user.UpdateUserValue{}
 		err = parseRequest(r, &req)
 		if err != nil {
 			return nil, &appError{errors.Wrap(err, ErrUpdateUser.Error()), "Bad Request", http.StatusBadRequest}
-		}
-		if req.IsEmpty() {
-			return nil, &appError{ErrUpdateUser, "Bad Request", http.StatusBadRequest}
 		}
 
 		u, err := application.UpdateUser(r.Context(), id, req)
@@ -119,6 +115,8 @@ func UpdateUser() func(http.ResponseWriter, *http.Request) {
 			switch errors.Cause(err) {
 			case user.ErrNoSuchEntity:
 				return nil, &appError{errors.Wrap(err, ErrUpdateUser.Error()), "Not Found", http.StatusNotFound}
+			case user.ErrNothingToUpdate:
+				return nil, &appError{errors.Wrap(err, ErrUpdateUser.Error()), "Bad Request", http.StatusBadRequest}
 			case user.ErrEmailCannotTake, user.ErrScreenNameCannotTake:
 				return nil, &appError{errors.Wrap(err, ErrUpdateUser.Error()), "Unprocessable Entity", http.StatusUnprocessableEntity}
 			default:

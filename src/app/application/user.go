@@ -3,7 +3,6 @@ package application
 import (
 	"context"
 
-	"github.com/hamakn/go_ddd_webapp/src/app/application/request"
 	"github.com/hamakn/go_ddd_webapp/src/app/domain/user"
 	"github.com/pkg/errors"
 )
@@ -40,7 +39,7 @@ func GetUserByID(ctx context.Context, id int64) (*user.User, error) {
 }
 
 // CreateUser creates user from request
-func CreateUser(ctx context.Context, req request.CreateUserRequest) (*user.User, error) {
+func CreateUser(ctx context.Context, req user.CreateUserValue) (*user.User, error) {
 	u := user.NewFactory().Create(*req.Email, *req.ScreenName, *req.Age)
 
 	err := user.NewRepository(ctx).Create(u)
@@ -52,20 +51,15 @@ func CreateUser(ctx context.Context, req request.CreateUserRequest) (*user.User,
 }
 
 // UpdateUser updates user from request
-func UpdateUser(ctx context.Context, id int64, req request.UpdateUserRequest) (*user.User, error) {
+func UpdateUser(ctx context.Context, id int64, req user.UpdateUserValue) (*user.User, error) {
 	u, err := user.NewRepository(ctx).GetByID(id)
 	if err != nil {
 		return nil, errors.Wrap(err, ErrUpdateUser.Error())
 	}
 
-	if req.Email != nil {
-		u.Email = *req.Email
-	}
-	if req.ScreenName != nil {
-		u.ScreenName = *req.ScreenName
-	}
-	if req.Age != nil {
-		u.Age = *req.Age
+	hasUpdate := req.UpdateUser(u)
+	if !hasUpdate {
+		return nil, user.ErrNothingToUpdate
 	}
 
 	err = user.NewRepository(ctx).Update(u)

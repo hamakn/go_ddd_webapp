@@ -9,7 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hamakn/go_ddd_webapp/src/app/application/request"
 	"github.com/hamakn/go_ddd_webapp/src/app/domain/user"
 
 	"github.com/hamakn/go_ddd_webapp/src/app/infrastructure/config"
@@ -146,7 +145,7 @@ func TestCreateUser(t *testing.T) {
 			u := &user.User{}
 			json.NewDecoder(res.Body).Decode(&u)
 
-			r := request.CreateUserRequest{}
+			r := user.CreateUserValue{}
 			json.NewDecoder(strings.NewReader(testCase.PostJSON)).Decode(&r)
 
 			dbu, err := user.NewRepository(ctx).GetByID(u.ID)
@@ -207,14 +206,21 @@ func TestUpdateUser(t *testing.T) {
 			400,
 		},
 		{
-			// NG5: no entity
+			// NG5: nothing to update (same old screen_name and new screen_name)
+			"1",
+			`{"screen_name":"foo"}`,
+			true,
+			400,
+		},
+		{
+			// NG6: no entity
 			"42",
 			`{"email":"new@hamakn.test"}`,
 			true,
 			404,
 		},
 		{
-			// NG6: email taken
+			// NG7: email taken
 			"1",
 			`{"email":"bar@hamakn.test"}`,
 			true,
@@ -244,7 +250,7 @@ func TestUpdateUser(t *testing.T) {
 			u := &user.User{}
 			json.NewDecoder(res.Body).Decode(&u)
 
-			r := request.CreateUserRequest{}
+			r := user.UpdateUserValue{}
 			json.NewDecoder(strings.NewReader(testCase.PostJSON)).Decode(&r)
 
 			dbu, err := user.NewRepository(ctx).GetByID(u.ID)
