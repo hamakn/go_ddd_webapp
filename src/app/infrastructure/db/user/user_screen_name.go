@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/hamakn/go_ddd_webapp/src/app/domain/user"
@@ -25,7 +26,12 @@ func newUserScreenName(u *user.User) *userScreenName {
 }
 
 func userScreenNameKey(ctx context.Context, screenName string) *datastore.Key {
-	return datastore.NewKey(ctx, "UserScreenName", screenName, 0, nil)
+	return datastore.NewKey(ctx, "UserScreenName", userScreenNameKeyString(screenName), 0, nil)
+}
+
+// userScreenNameKeyString is downcased email
+func userScreenNameKeyString(screenName string) string {
+	return strings.ToLower(screenName)
 }
 
 func canTakeUserScreenName(ctx context.Context, screenName string) bool {

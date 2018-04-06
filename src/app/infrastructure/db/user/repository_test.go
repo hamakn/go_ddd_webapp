@@ -36,17 +36,17 @@ func TestCreate(t *testing.T) {
 			user.ErrEmailCannotTake,
 		},
 		{
-			// taken email
-			"foo@hamakn.test",
+			// taken email (other case)
+			"FOO@hamakn.test",
 			"new_name",
 			25,
 			true,
 			user.ErrEmailCannotTake,
 		},
 		{
-			// taken screen name
+			// taken screen name (other case)
 			"new@hamakn.test",
-			"foo",
+			"FOO",
 			26,
 			true,
 			user.ErrScreenNameCannotTake,
