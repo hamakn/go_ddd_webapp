@@ -43,7 +43,7 @@ func GetUser() func(http.ResponseWriter, *http.Request) {
 			return nil, &appError{err, "params id was wrong", http.StatusBadRequest}
 		}
 
-		user, err := application.GetUserByID(r.Context(), id)
+		u, err := application.GetUserByID(r.Context(), id)
 		if err != nil {
 			if err.Error() == "datastore: no such entity" {
 				return nil, &appError{errors.Wrap(err, ErrGetUser.Error()), "Not Found", http.StatusNotFound}
@@ -51,7 +51,7 @@ func GetUser() func(http.ResponseWriter, *http.Request) {
 			return nil, &appError{errors.Wrap(err, ErrGetUser.Error()), "internal server error", http.StatusInternalServerError}
 		}
 
-		res, err := response.GetUserResponse(user)
+		res, err := response.GetUserResponse(u)
 		if err != nil {
 			return nil, &appError{errors.Wrap(err, ErrGetUser.Error()), "internal server error", http.StatusInternalServerError}
 		}

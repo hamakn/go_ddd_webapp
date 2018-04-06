@@ -26,7 +26,7 @@ func GetUsers(ctx context.Context) ([]*user.User, error) {
 
 // GetUserByID returns user specified by id
 func GetUserByID(ctx context.Context, id int64) (*user.User, error) {
-	user, err := user.NewRepository(ctx).GetByID(id)
+	u, err := user.NewRepository(ctx).GetByID(id)
 	if err != nil {
 		if err.Error() == "datastore: no such entity" {
 			return nil, err
@@ -34,5 +34,5 @@ func GetUserByID(ctx context.Context, id int64) (*user.User, error) {
 		return nil, errors.Wrap(err, ErrGetUserByID.Error())
 	}
 
-	return user, nil
+	return u, nil
 }
