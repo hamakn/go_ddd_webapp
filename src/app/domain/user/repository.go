@@ -10,6 +10,7 @@ type Repository interface {
 	GetAll() ([]*User, error)
 	GetByID(id int64) (*User, error)
 	Create(u *User) error
+	Update(u *User) error
 	CreateFixture() ([]*User, error)
 }
 

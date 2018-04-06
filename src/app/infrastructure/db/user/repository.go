@@ -85,6 +85,40 @@ func (r *repository) Create(u *user.User) error {
 	)
 }
 
+func (r *repository) Update(u *user.User) error {
+	return appDatastore.RunInTransaction(r.Ctx, func(tctx context.Context) error {
+		oldUser, err := r.GetByID(u.ID)
+		if err != nil {
+			return err
+		}
+
+		// userEmail
+		if oldUser.Email != u.Email {
+			err := updateUserEmail(tctx, u, oldUser.Email)
+			if err != nil {
+				return err
+			}
+		}
+
+		// userScreenName
+		if oldUser.ScreenName != u.ScreenName {
+			err := updateUserScreenName(tctx, u, oldUser.ScreenName)
+			if err != nil {
+				return err
+			}
+		}
+
+		err = db.Put(tctx, u)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	},
+		true, // XG
+	)
+}
+
 func (r *repository) CreateFixture() ([]*user.User, error) {
 	users := []*user.User{}
 

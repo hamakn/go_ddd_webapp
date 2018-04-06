@@ -2,10 +2,12 @@ package user
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"time"
 
 	"github.com/hamakn/go_ddd_webapp/src/app/domain/user"
+	appDatastore "github.com/hamakn/go_ddd_webapp/src/app/infrastructure/datastore"
 	"google.golang.org/appengine/datastore"
 )
 
@@ -47,4 +49,42 @@ func takeUserScreenName(ctx context.Context, u *userScreenName) error {
 	k := userScreenNameKey(ctx, u.ScreenName)
 	_, err := datastore.Put(ctx, k, u)
 	return err
+}
+
+func updateUserScreenName(ctx context.Context, u *user.User, oldScreenName string) error {
+	return appDatastore.RunInTransaction(ctx, func(tctx context.Context) error {
+		// lock new userScreenName
+		if !canTakeUserScreenName(tctx, u.ScreenName) {
+			return user.ErrScreenNameCannotTake
+		}
+
+		// lock old userScreenName
+		old := userScreenName{}
+		err := datastore.Get(tctx, userScreenNameKey(tctx, oldScreenName), &old)
+		if err != nil {
+			return err
+		}
+		// checking owner of old userScreenName
+		if old.UserID != u.ID {
+			return errors.New("app-infra-db-user-screen_name: oldScreenName is not specified user's")
+		}
+
+		err = deleteUserScreenName(tctx, oldScreenName)
+		if err != nil {
+			return err
+		}
+
+		err = takeUserScreenName(tctx, newUserScreenName(u))
+		if err != nil {
+			return err
+		}
+
+		return nil
+	},
+		true, // XG
+	)
+}
+
+func deleteUserScreenName(ctx context.Context, screenName string) error {
+	return datastore.Delete(ctx, userScreenNameKey(ctx, screenName))
 }

@@ -2,10 +2,12 @@ package user
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"time"
 
 	"github.com/hamakn/go_ddd_webapp/src/app/domain/user"
+	appDatastore "github.com/hamakn/go_ddd_webapp/src/app/infrastructure/datastore"
 	"google.golang.org/appengine/datastore"
 )
 
@@ -47,4 +49,42 @@ func takeUserEmail(ctx context.Context, u *userEmail) error {
 	k := userEmailKey(ctx, u.Email)
 	_, err := datastore.Put(ctx, k, u)
 	return err
+}
+
+func updateUserEmail(ctx context.Context, u *user.User, oldEmail string) error {
+	return appDatastore.RunInTransaction(ctx, func(tctx context.Context) error {
+		// lock new userEmail
+		if !canTakeUserEmail(tctx, u.Email) {
+			return user.ErrEmailCannotTake
+		}
+
+		// lock old userEmail
+		old := userEmail{}
+		err := datastore.Get(tctx, userEmailKey(tctx, oldEmail), &old)
+		if err != nil {
+			return err
+		}
+		// checking owner of old userEmail
+		if old.UserID != u.ID {
+			return errors.New("app-infra-db-user-email: oldEmail is not specified user's")
+		}
+
+		err = deleteUserEmail(tctx, oldEmail)
+		if err != nil {
+			return err
+		}
+
+		err = takeUserEmail(tctx, newUserEmail(u))
+		if err != nil {
+			return err
+		}
+
+		return nil
+	},
+		true, // XG
+	)
+}
+
+func deleteUserEmail(ctx context.Context, email string) error {
+	return datastore.Delete(ctx, userEmailKey(ctx, email))
 }
