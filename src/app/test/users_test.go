@@ -159,6 +159,110 @@ func TestCreateUser(t *testing.T) {
 	}
 }
 
+func TestUpdateUser(t *testing.T) {
+	inst, err := aetest.NewInstance(&aetest.Options{
+		StronglyConsistentDatastore: true,
+	})
+	require.Nil(t, err)
+	defer inst.Close()
+
+	req, err := inst.NewRequest("GET", "/dummy", nil)
+	require.Nil(t, err)
+
+	err = loadUserFixture(appengine.NewContext(req))
+	require.Nil(t, err)
+
+	testCases := []struct {
+		UserID       string
+		PostJSON     string
+		HasError     bool
+		ResponseCode int
+	}{
+		{
+			// NG1: bad user ID
+			"bad",
+			`{"email":"new@hamakn.test"}`,
+			true,
+			400,
+		},
+		{
+			// NG2: broken JSON
+			"1",
+			`{`,
+			true,
+			400,
+		},
+		{
+			// NG3: validation error (bad email)
+			"1",
+			`{"email":"bad_email"}`,
+			true,
+			400,
+		},
+		{
+			// NG4: nothing to update
+			"1",
+			`{"extra":"aaa"}`,
+			true,
+			400,
+		},
+		{
+			// NG5: no entity
+			"42",
+			`{"email":"new@hamakn.test"}`,
+			true,
+			404,
+		},
+		{
+			// NG6: email taken
+			"1",
+			`{"email":"bar@hamakn.test"}`,
+			true,
+			422,
+		},
+		{
+			// OK
+			"1",
+			`{"email":"new@hamakn.test"}`,
+			false,
+			200,
+		},
+	}
+
+	for _, testCase := range testCases {
+		req, err := inst.NewRequest("PUT", "/users/"+testCase.UserID, strings.NewReader(testCase.PostJSON))
+		require.Nil(t, err)
+
+		res := httptest.NewRecorder()
+		config.NewRouter().ServeHTTP(res, req)
+
+		require.Equal(t, testCase.ResponseCode, res.Code)
+
+		if !testCase.HasError {
+			ctx := appengine.NewContext(req)
+
+			u := &user.User{}
+			json.NewDecoder(res.Body).Decode(&u)
+
+			r := request.CreateUserRequest{}
+			json.NewDecoder(strings.NewReader(testCase.PostJSON)).Decode(&r)
+
+			dbu, err := user.NewRepository(ctx).GetByID(u.ID)
+			require.Nil(t, err)
+
+			if r.Email != nil {
+				require.Equal(t, *r.Email, dbu.Email)
+			}
+			if r.ScreenName != nil {
+				require.Equal(t, *r.ScreenName, dbu.ScreenName)
+			}
+			if r.Age != nil {
+				require.Equal(t, *r.Age, dbu.Age)
+			}
+		}
+	}
+}
+
 func loadUserFixture(ctx context.Context) error {
 	r := user.NewRepository(ctx)
 	_, err := r.CreateFixture()

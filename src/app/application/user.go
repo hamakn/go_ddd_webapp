@@ -15,6 +15,8 @@ var (
 	ErrGetUserByID = errors.New("app-application-user: GetUserByID failed")
 	// ErrCreateUser is error on CreateUser
 	ErrCreateUser = errors.New("app-application-user: CreateUser failed")
+	// ErrUpdateUser is error on CreateUser
+	ErrUpdateUser = errors.New("app-application-user: UpdateUser failed")
 )
 
 // GetUsers returns users
@@ -44,6 +46,31 @@ func CreateUser(ctx context.Context, req request.CreateUserRequest) (*user.User,
 	err := user.NewRepository(ctx).Create(u)
 	if err != nil {
 		return nil, errors.Wrap(err, ErrCreateUser.Error())
+	}
+
+	return u, nil
+}
+
+// UpdateUser updates user from request
+func UpdateUser(ctx context.Context, id int64, req request.UpdateUserRequest) (*user.User, error) {
+	u, err := user.NewRepository(ctx).GetByID(id)
+	if err != nil {
+		return nil, errors.Wrap(err, ErrUpdateUser.Error())
+	}
+
+	if req.Email != nil {
+		u.Email = *req.Email
+	}
+	if req.ScreenName != nil {
+		u.ScreenName = *req.ScreenName
+	}
+	if req.Age != nil {
+		u.Age = *req.Age
+	}
+
+	err = user.NewRepository(ctx).Update(u)
+	if err != nil {
+		return nil, errors.Wrap(err, ErrUpdateUser.Error())
 	}
 
 	return u, nil
