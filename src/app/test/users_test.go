@@ -101,7 +101,7 @@ func TestCreateUser(t *testing.T) {
 	}{
 		{
 			// OK json
-			"{\"email\":\"new@hamakn.test\",\"screen_name\":\"new_name\",\"age\":17}",
+			`{"email":"new@hamakn.test","screen_name":"new_name","age":17}`,
 			false,
 			200,
 		},
@@ -119,13 +119,13 @@ func TestCreateUser(t *testing.T) {
 		},
 		{
 			// NG json: validation failed
-			"{\"email\":\"new@hamakn.test\",\"screen_name\":\"たろう\",\"age\":17}",
+			`{"email":"new@hamakn.test","screen_name":"たろう","age":17}`,
 			true,
 			400,
 		},
 		{
 			// NG json: email taken user
-			"{\"email\":\"foo@hamakn.test\",\"screen_name\":\"new_foo\",\"age\":17}",
+			`{"email":"foo@hamakn.test","screen_name":"new_foo","age":17}`,
 			true,
 			422,
 		},
