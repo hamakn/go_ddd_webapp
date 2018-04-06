@@ -10,7 +10,7 @@ import (
 	"google.golang.org/appengine/aetest"
 )
 
-func TestCreateDup(t *testing.T) {
+func TestCreate(t *testing.T) {
 	ctx, done, err := aetest.NewContext()
 	defer done()
 	require.Nil(t, err)
@@ -21,11 +21,11 @@ func TestCreateDup(t *testing.T) {
 	require.Nil(t, err)
 
 	testCases := []struct {
-		email        string
-		screenName   string
-		age          int
-		hasError     bool
-		errorMessage string
+		email      string
+		screenName string
+		age        int
+		hasError   bool
+		err        error
 	}{
 		{
 			// taken email and screen name
@@ -33,7 +33,7 @@ func TestCreateDup(t *testing.T) {
 			"foo",
 			24,
 			true,
-			"Email cannot take",
+			user.ErrEmailCannotTake,
 		},
 		{
 			// taken email
@@ -41,7 +41,7 @@ func TestCreateDup(t *testing.T) {
 			"new_name",
 			25,
 			true,
-			"Email cannot take",
+			user.ErrEmailCannotTake,
 		},
 		{
 			// taken screen name
@@ -49,7 +49,7 @@ func TestCreateDup(t *testing.T) {
 			"foo",
 			26,
 			true,
-			"ScreenName cannot take",
+			user.ErrScreenNameCannotTake,
 		},
 		{
 			// ok
@@ -57,7 +57,7 @@ func TestCreateDup(t *testing.T) {
 			"new",
 			17,
 			false,
-			"",
+			nil,
 		},
 	}
 
@@ -67,7 +67,7 @@ func TestCreateDup(t *testing.T) {
 
 		if testCase.hasError {
 			require.NotNil(t, err)
-			require.Contains(t, err.Error(), testCase.errorMessage)
+			require.Equal(t, testCase.err, err)
 
 		} else {
 			require.Nil(t, err)
