@@ -19,13 +19,13 @@
 ## Request examples
 ````
 % curl -X POST -d '{"email": "foo@foo.test", "screen_name": "foo", "age": 17}' http://localhost:8080/users/
-{"ID":5629499534213120,"Email":"foo@foo.test","ScreenName":"foo","Age":17,"CreatedAt":"2018-04-08T10:21:07.617449Z","UpdatedAt":"2018-04-08T10:21:07.617449Z"}
+{"id":5629499534213120,"email":"foo@foo.test","screen_name":"foo","age":17,"created_at":"2018-04-08T10:21:07.617449Z","updated_at":"2018-04-08T10:21:07.617449Z"}
 
 % curl http://localhost:8080/users/
-[{"ID":5629499534213120,"Email":"foo@foo.test","ScreenName":"foo","Age":17,"CreatedAt":"2018-04-08T10:21:07.617449Z","UpdatedAt":"2018-04-08T10:21:07.617449Z"}]
+[{"id":5629499534213120,"email":"foo@foo.test","screen_name":"foo","age":17,"created_at":"2018-04-08T10:21:07.617449Z","updated_at":"2018-04-08T10:21:07.617449Z"}]
 
 % curl http://localhost:8080/users/5629499534213120
-{"ID":5629499534213120,"Email":"foo@foo.test","ScreenName":"foo","Age":17,"CreatedAt":"2018-04-08T10:21:07.617449Z","UpdatedAt":"2018-04-08T10:21:07.617449Z"}
+{"id":5629499534213120,"email":"foo@foo.test","screen_name":"foo","age":17,"created_at":"2018-04-08T10:21:07.617449Z","updated_at":"2018-04-08T10:21:07.617449Z"}
 
 % curl -X POST -d '{"email": "foo@foo.test", "screen_name": "new", "age": 17}' http://localhost:8080/users/
 {"error":"Unprocessable Entity"}
@@ -34,7 +34,7 @@
 {"error":"Unprocessable Entity"}
 
 % curl -X PUT -d '{"screen_name": "new"}' http://localhost:8080/users/5629499534213120
-{"ID":5629499534213120,"Email":"foo@foo.test","ScreenName":"new","Age":17,"CreatedAt":"2018-04-08T10:21:07.617449Z","UpdatedAt":"2018-04-08T10:22:59.279485Z"}
+{"id":5629499534213120,"email":"foo@foo.test","screen_name":"new","age":17,"created_at":"2018-04-08T10:21:07.617449Z","updated_at":"2018-04-08T10:22:59.279485Z"}
 
 % curl -X DELETE http://localhost:8080/users/5629499534213120
 
