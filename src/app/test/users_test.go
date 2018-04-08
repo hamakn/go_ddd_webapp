@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -265,6 +266,65 @@ func TestUpdateUser(t *testing.T) {
 			if r.Age != nil {
 				require.Equal(t, *r.Age, dbu.Age)
 			}
+		}
+	}
+}
+
+func TestDeleteUser(t *testing.T) {
+	inst, err := aetest.NewInstance(&aetest.Options{
+		StronglyConsistentDatastore: true,
+	})
+	require.Nil(t, err)
+	defer inst.Close()
+
+	req, err := inst.NewRequest("GET", "/dummy", nil)
+	require.Nil(t, err)
+
+	err = loadUserFixture(appengine.NewContext(req))
+	require.Nil(t, err)
+
+	testCases := []struct {
+		UserID       string
+		HasError     bool
+		ResponseCode int
+	}{
+		{
+			// NG1: bad user id
+			"bad",
+			true,
+			400,
+		},
+		{
+			// NG2: not found
+			"42",
+			true,
+			404,
+		},
+		{
+			// OK
+			"1",
+			false,
+			204,
+		},
+	}
+
+	for _, testCase := range testCases {
+		req, err := inst.NewRequest("DELETE", "/users/"+testCase.UserID, nil)
+		require.Nil(t, err)
+
+		res := httptest.NewRecorder()
+		config.NewRouter().ServeHTTP(res, req)
+
+		require.Equal(t, testCase.ResponseCode, res.Code)
+
+		if !testCase.HasError {
+			ctx := appengine.NewContext(req)
+
+			id, err := strconv.ParseInt(testCase.UserID, 10, 64)
+			require.Nil(t, err)
+
+			_, err = user.NewRepository(ctx).GetByID(id)
+			require.Equal(t, user.ErrNoSuchEntity, err)
 		}
 	}
 }

@@ -16,6 +16,8 @@ var (
 	ErrCreateUser = errors.New("app-application-user: CreateUser failed")
 	// ErrUpdateUser is error on CreateUser
 	ErrUpdateUser = errors.New("app-application-user: UpdateUser failed")
+	// ErrDeleteUser is error on DeleteUser
+	ErrDeleteUser = errors.New("app-application-user: DeleteUser failed")
 )
 
 // GetUsers returns users
@@ -68,4 +70,19 @@ func UpdateUser(ctx context.Context, id int64, req user.UpdateUserValue) (*user.
 	}
 
 	return u, nil
+}
+
+// DeleteUser deletes user specified by id
+func DeleteUser(ctx context.Context, id int64) error {
+	u, err := user.NewRepository(ctx).GetByID(id)
+	if err != nil {
+		return errors.Wrap(err, ErrDeleteUser.Error())
+	}
+
+	err = user.NewRepository(ctx).Delete(u)
+	if err != nil {
+		return errors.Wrap(err, ErrUpdateUser.Error())
+	}
+
+	return nil
 }

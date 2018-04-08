@@ -17,6 +17,7 @@ func NewRouter() *negroni.Negroni {
 	userRouter.HandleFunc("/{id}", handler.GetUser()).Methods("GET")
 	userRouter.HandleFunc("/", handler.CreateUser()).Methods("POST")
 	userRouter.HandleFunc("/{id}", handler.UpdateUser()).Methods("PUT")
+	userRouter.HandleFunc("/{id}", handler.DeleteUser()).Methods("DELETE")
 
 	n := negroni.New(
 		middleware.NewContextSetter(),

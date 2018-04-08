@@ -20,6 +20,8 @@ var (
 	ErrCreateUser = errors.New("app-interface-handler-create-user: CreateUser failed")
 	// ErrUpdateUser is error on UpdateUser
 	ErrUpdateUser = errors.New("app-interface-handler-update-user: UpdateUser failed")
+	// ErrDeleteUser is error on DeleteUser
+	ErrDeleteUser = errors.New("app-interface-handler-delete-user: DeleteUser failed")
 )
 
 // GetUsers is handler to handle getting users request
@@ -101,7 +103,7 @@ func UpdateUser() func(http.ResponseWriter, *http.Request) {
 		vars := mux.Vars(r)
 		id, err := strconv.ParseInt(vars["id"], 10, 64)
 		if err != nil {
-			return nil, &appError{err, "Bad Request", http.StatusBadRequest}
+			return nil, &appError{errors.Wrap(err, ErrUpdateUser.Error()), "Bad Request", http.StatusBadRequest}
 		}
 
 		req := user.UpdateUserValue{}
@@ -130,5 +132,29 @@ func UpdateUser() func(http.ResponseWriter, *http.Request) {
 		}
 
 		return res, nil
+	})
+}
+
+// DeleteUser is handler to handle delete user request
+func DeleteUser() func(http.ResponseWriter, *http.Request) {
+	return createAppHandler(func(w http.ResponseWriter, r *http.Request) (*response.Response, *appError) {
+		vars := mux.Vars(r)
+		id, err := strconv.ParseInt(vars["id"], 10, 64)
+		if err != nil {
+			return nil, &appError{errors.Wrap(err, ErrDeleteUser.Error()), "Bad Request", http.StatusBadRequest}
+		}
+
+		err = application.DeleteUser(r.Context(), id)
+		if err != nil {
+			switch errors.Cause(err) {
+			case user.ErrNoSuchEntity:
+				return nil, &appError{errors.Wrap(err, ErrDeleteUser.Error()), "Not Found", http.StatusNotFound}
+			default:
+				return nil, &appError{errors.Wrap(err, ErrDeleteUser.Error()), "internal server error", http.StatusInternalServerError}
+			}
+		}
+
+		// return empty response
+		return &response.Response{}, nil
 	})
 }
