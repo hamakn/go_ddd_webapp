@@ -10,6 +10,7 @@ type Repository interface {
 	GetByID(id int64) (*User, error)
 	Create(u *User) error
 	Update(u *User) error
+	Delete(u *User) error
 	CreateFixture() ([]*User, error)
 }
 

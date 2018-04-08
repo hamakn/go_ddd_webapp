@@ -123,6 +123,37 @@ func (r *repository) Update(u *user.User) error {
 	)
 }
 
+func (r *repository) Delete(u *user.User) error {
+	return appDatastore.RunInTransaction(r.Ctx, func(tctx context.Context) error {
+		// lock user
+		txu, err := r.GetByID(u.ID)
+		if err != nil {
+			return err
+		}
+
+		// userEmail
+		err = deleteUserEmail(tctx, u.Email, txu.ID)
+		if err != nil {
+			return err
+		}
+
+		// userScreenName
+		err = deleteUserScreenName(tctx, u.ScreenName, txu.ID)
+		if err != nil {
+			return err
+		}
+
+		err = db.Delete(tctx, txu)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	},
+		true, // XG
+	)
+}
+
 func (r *repository) CreateFixture() ([]*user.User, error) {
 	users := []*user.User{}
 

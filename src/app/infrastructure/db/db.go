@@ -31,3 +31,9 @@ func PutMulti(ctx context.Context, src interface{}) ([]*datastore.Key, error) {
 	g := goon.FromContext(ctx)
 	return g.PutMulti(src)
 }
+
+// Delete delets object from db
+func Delete(ctx context.Context, src interface{}) error {
+	g := goon.FromContext(ctx)
+	return g.Delete(g.Key(src))
+}

@@ -164,6 +164,49 @@ func TestUpdate(t *testing.T) {
 	}
 }
 
+func TestDelete(t *testing.T) {
+	ctx, done, err := aetest.NewContext()
+	defer done()
+	require.Nil(t, err)
+
+	r := NewRepository(ctx)
+	_, err = r.CreateFixture()
+	require.Nil(t, err)
+
+	testCases := []struct {
+		userID   int64
+		hasError bool
+	}{
+		{
+			// OK
+			1,
+			false,
+		},
+	}
+
+	for _, testCase := range testCases {
+		u, err := r.GetByID(testCase.userID)
+		require.Nil(t, err)
+
+		deleteEmail := u.Email
+		deleteScreenName := u.ScreenName
+		err = r.Delete(u)
+
+		if testCase.hasError {
+			require.NotNil(t, err)
+
+		} else {
+			require.Nil(t, err)
+
+			_, err := r.GetByID(testCase.userID)
+			require.Equal(t, user.ErrNoSuchEntity, err)
+
+			require.Equal(t, true, canTakeUserEmail(ctx, deleteEmail))
+			require.Equal(t, true, canTakeUserScreenName(ctx, deleteScreenName))
+		}
+	}
+}
+
 func TestCreateFixture(t *testing.T) {
 	ctx, done, err := aetest.NewContext()
 	defer done()
