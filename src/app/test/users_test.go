@@ -60,9 +60,9 @@ func TestGetUser(t *testing.T) {
 		HasError     bool
 		ResponseCode int
 	}{
-		{"1", false, 200},
-		{"42", true, 404},
-		{"bad", true, 400},
+		{"1", false, http.StatusOK},
+		{"42", true, http.StatusNotFound},
+		{"bad", true, http.StatusBadRequest},
 	}
 
 	for _, testCase := range testCases {
@@ -103,31 +103,31 @@ func TestCreateUser(t *testing.T) {
 			// OK json
 			`{"email":"new@hamakn.test","screen_name":"new_name","age":17}`,
 			false,
-			200,
+			http.StatusOK,
 		},
 		{
 			// NG json: broken json
 			"{",
 			true,
-			400,
+			http.StatusBadRequest,
 		},
 		{
 			// NG json: no required field
 			"{}",
 			true,
-			400,
+			http.StatusBadRequest,
 		},
 		{
 			// NG json: validation failed
 			`{"email":"new@hamakn.test","screen_name":"たろう","age":17}`,
 			true,
-			400,
+			http.StatusBadRequest,
 		},
 		{
 			// NG json: email taken user
 			`{"email":"foo@hamakn.test","screen_name":"new_foo","age":17}`,
 			true,
-			422,
+			http.StatusUnprocessableEntity,
 		},
 	}
 
@@ -183,56 +183,56 @@ func TestUpdateUser(t *testing.T) {
 			"bad",
 			`{"email":"new@hamakn.test"}`,
 			true,
-			400,
+			http.StatusBadRequest,
 		},
 		{
 			// NG2: broken JSON
 			"1",
 			`{`,
 			true,
-			400,
+			http.StatusBadRequest,
 		},
 		{
 			// NG3: validation error (bad email)
 			"1",
 			`{"email":"bad_email"}`,
 			true,
-			400,
+			http.StatusBadRequest,
 		},
 		{
 			// NG4: nothing to update
 			"1",
 			`{"extra":"aaa"}`,
 			true,
-			400,
+			http.StatusBadRequest,
 		},
 		{
 			// NG5: nothing to update (same old screen_name and new screen_name)
 			"1",
 			`{"screen_name":"foo"}`,
 			true,
-			400,
+			http.StatusBadRequest,
 		},
 		{
 			// NG6: no entity
 			"42",
 			`{"email":"new@hamakn.test"}`,
 			true,
-			404,
+			http.StatusNotFound,
 		},
 		{
 			// NG7: email taken
 			"1",
 			`{"email":"bar@hamakn.test"}`,
 			true,
-			422,
+			http.StatusUnprocessableEntity,
 		},
 		{
 			// OK
 			"1",
 			`{"email":"new@hamakn.test"}`,
 			false,
-			200,
+			http.StatusOK,
 		},
 	}
 
@@ -292,19 +292,19 @@ func TestDeleteUser(t *testing.T) {
 			// NG1: bad user id
 			"bad",
 			true,
-			400,
+			http.StatusBadRequest,
 		},
 		{
 			// NG2: not found
 			"42",
 			true,
-			404,
+			http.StatusNotFound,
 		},
 		{
 			// OK
 			"1",
 			false,
-			204,
+			http.StatusNoContent,
 		},
 	}
 
