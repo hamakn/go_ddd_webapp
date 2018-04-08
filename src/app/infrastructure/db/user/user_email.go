@@ -58,18 +58,7 @@ func updateUserEmail(ctx context.Context, u *user.User, oldEmail string) error {
 			return user.ErrEmailCannotTake
 		}
 
-		// lock old userEmail
-		old := userEmail{}
-		err := datastore.Get(tctx, userEmailKey(tctx, oldEmail), &old)
-		if err != nil {
-			return err
-		}
-		// checking owner of old userEmail
-		if old.UserID != u.ID {
-			return errors.New("app-infra-db-user-email: oldEmail is not specified user's")
-		}
-
-		err = deleteUserEmail(tctx, oldEmail)
+		err := deleteUserEmail(tctx, oldEmail, u.ID)
 		if err != nil {
 			return err
 		}
@@ -85,6 +74,26 @@ func updateUserEmail(ctx context.Context, u *user.User, oldEmail string) error {
 	)
 }
 
-func deleteUserEmail(ctx context.Context, email string) error {
-	return datastore.Delete(ctx, userEmailKey(ctx, email))
+func deleteUserEmail(ctx context.Context, email string, userID int64) error {
+	return appDatastore.RunInTransaction(ctx, func(tctx context.Context) error {
+		// lock old userEmail
+		old := userEmail{}
+		err := datastore.Get(tctx, userEmailKey(tctx, email), &old)
+		if err != nil {
+			return err
+		}
+		// checking owner of old userEmail
+		if old.UserID != userID {
+			return errors.New("app-infra-db-user-email: oldEmail is not specified user's")
+		}
+
+		err = datastore.Delete(tctx, userEmailKey(tctx, email))
+		if err != nil {
+			return err
+		}
+
+		return nil
+	},
+		false,
+	)
 }

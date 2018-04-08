@@ -58,18 +58,7 @@ func updateUserScreenName(ctx context.Context, u *user.User, oldScreenName strin
 			return user.ErrScreenNameCannotTake
 		}
 
-		// lock old userScreenName
-		old := userScreenName{}
-		err := datastore.Get(tctx, userScreenNameKey(tctx, oldScreenName), &old)
-		if err != nil {
-			return err
-		}
-		// checking owner of old userScreenName
-		if old.UserID != u.ID {
-			return errors.New("app-infra-db-user-screen_name: oldScreenName is not specified user's")
-		}
-
-		err = deleteUserScreenName(tctx, oldScreenName)
+		err := deleteUserScreenName(tctx, oldScreenName, u.ID)
 		if err != nil {
 			return err
 		}
@@ -85,6 +74,26 @@ func updateUserScreenName(ctx context.Context, u *user.User, oldScreenName strin
 	)
 }
 
-func deleteUserScreenName(ctx context.Context, screenName string) error {
-	return datastore.Delete(ctx, userScreenNameKey(ctx, screenName))
+func deleteUserScreenName(ctx context.Context, screenName string, userID int64) error {
+	return appDatastore.RunInTransaction(ctx, func(tctx context.Context) error {
+		// lock old userScreenName
+		old := userScreenName{}
+		err := datastore.Get(tctx, userScreenNameKey(tctx, screenName), &old)
+		if err != nil {
+			return err
+		}
+		// checking owner of old userScreenName
+		if old.UserID != userID {
+			return errors.New("app-infra-db-user-screen_name: oldScreenName is not specified user's")
+		}
+
+		err = datastore.Delete(tctx, userScreenNameKey(tctx, screenName))
+		if err != nil {
+			return err
+		}
+
+		return nil
+	},
+		false,
+	)
 }
