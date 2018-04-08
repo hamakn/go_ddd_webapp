@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/hamakn/go_ddd_webapp/tree/master.svg?style=svg)](https://circleci.com/gh/hamakn/go_ddd_webapp/tree/master)
+
 # my Golang DDD webapp example
 
 ## Features
