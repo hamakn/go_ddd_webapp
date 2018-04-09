@@ -10,5 +10,7 @@ var (
 	// ErrScreenNameCannotTake is screen_name cannot take error
 	ErrScreenNameCannotTake = errors.New("app-domain-user: ScreenName cannot take")
 	// ErrNothingToUpdate is nothing to update error
-	ErrNothingToUpdate = errors.New("app-domain-user-user: Nothing to update")
+	ErrNothingToUpdate = errors.New("app-domain-user: Nothing to update")
+	// ErrValidationFailed is user validation failed error
+	ErrValidationFailed = errors.New("app-domain-user: Validation failed")
 )

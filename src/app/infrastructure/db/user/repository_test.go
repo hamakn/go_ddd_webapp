@@ -53,6 +53,14 @@ func TestCreate(t *testing.T) {
 			user.ErrScreenNameCannotTake,
 		},
 		{
+			// validation failed
+			"bad_email",
+			"new_name",
+			27,
+			true,
+			user.ErrValidationFailed,
+		},
+		{
 			// ok
 			"new@hamakn.test",
 			"new",
@@ -109,6 +117,14 @@ func TestUpdate(t *testing.T) {
 			"BAR",
 			true,
 			user.ErrScreenNameCannotTake,
+		},
+		{
+			// NG3: validation failed
+			1,
+			"new@hamakn.test",
+			"ｂａｄｎａｍｅ",
+			true,
+			user.ErrValidationFailed,
 		},
 		{
 			// OK1

@@ -81,6 +81,8 @@ func CreateUser() func(http.ResponseWriter, *http.Request) {
 		u, err := application.CreateUser(r.Context(), req)
 		if err != nil {
 			switch errors.Cause(err) {
+			case user.ErrValidationFailed:
+				return nil, &appError{errors.Wrap(err, ErrCreateUser.Error()), "Bad Request", http.StatusBadRequest}
 			case user.ErrEmailCannotTake, user.ErrScreenNameCannotTake:
 				return nil, &appError{errors.Wrap(err, ErrCreateUser.Error()), "Unprocessable Entity", http.StatusUnprocessableEntity}
 			default:
@@ -117,7 +119,7 @@ func UpdateUser() func(http.ResponseWriter, *http.Request) {
 			switch errors.Cause(err) {
 			case user.ErrNoSuchEntity:
 				return nil, &appError{errors.Wrap(err, ErrUpdateUser.Error()), "Not Found", http.StatusNotFound}
-			case user.ErrNothingToUpdate:
+			case user.ErrNothingToUpdate, user.ErrValidationFailed:
 				return nil, &appError{errors.Wrap(err, ErrUpdateUser.Error()), "Bad Request", http.StatusBadRequest}
 			case user.ErrEmailCannotTake, user.ErrScreenNameCannotTake:
 				return nil, &appError{errors.Wrap(err, ErrUpdateUser.Error()), "Unprocessable Entity", http.StatusUnprocessableEntity}

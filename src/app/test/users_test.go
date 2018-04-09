@@ -119,7 +119,7 @@ func TestCreateUser(t *testing.T) {
 		},
 		{
 			// NG json: validation failed
-			`{"email":"new@hamakn.test","screen_name":"たろう","age":17}`,
+			`{"email":"new@hamakn.test","screen_name":"ｂａｄｎａｍｅ","age":17}`,
 			true,
 			http.StatusBadRequest,
 		},

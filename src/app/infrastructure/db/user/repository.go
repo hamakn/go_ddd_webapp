@@ -50,6 +50,11 @@ func (r *repository) GetByID(id int64) (*user.User, error) {
 }
 
 func (r *repository) Create(u *user.User) error {
+	err := u.Validate()
+	if err != nil {
+		return user.ErrValidationFailed
+	}
+
 	return appDatastore.RunInTransaction(r.Ctx, func(tctx context.Context) error {
 		// check email uniqueness
 		if !canTakeUserEmail(tctx, u.Email) {
@@ -87,6 +92,11 @@ func (r *repository) Create(u *user.User) error {
 }
 
 func (r *repository) Update(u *user.User) error {
+	err := u.Validate()
+	if err != nil {
+		return user.ErrValidationFailed
+	}
+
 	return appDatastore.RunInTransaction(r.Ctx, func(tctx context.Context) error {
 		oldUser, err := r.GetByID(u.ID)
 		if err != nil {
