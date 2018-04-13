@@ -1,19 +1,17 @@
 package user
 
-import (
-	"context"
-)
+import "context"
 
 // Repository is interface of user repository
 type Repository interface {
-	GetAll() ([]*User, error)
-	GetByID(id int64) (*User, error)
-	Create(u *User) error
-	Update(u *User) error
-	Delete(u *User) error
-	CreateFixture() ([]*User, error)
+	GetAll(context.Context) ([]*User, error)
+	GetByID(context.Context, int64) (*User, error)
+	Create(context.Context, *User) error
+	Update(context.Context, *User) error
+	Delete(context.Context, *User) error
+	CreateFixture(context.Context) ([]*User, error)
 }
 
 // NewRepository returns Repository
 // DI from infrastructure
-var NewRepository func(context.Context) Repository
+var NewRepository func() Repository

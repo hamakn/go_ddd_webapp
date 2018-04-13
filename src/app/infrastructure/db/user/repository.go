@@ -16,19 +16,18 @@ const (
 )
 
 type repository struct {
-	Ctx context.Context
 }
 
 // NewRepository returns user.Repository
-func NewRepository(ctx context.Context) user.Repository {
-	return &repository{Ctx: ctx}
+func NewRepository() user.Repository {
+	return &repository{}
 }
 
-func (r *repository) GetAll() ([]*user.User, error) {
+func (r *repository) GetAll(ctx context.Context) ([]*user.User, error) {
 	users := []*user.User{}
 	q := datastore.NewQuery(kind)
 
-	_, err := db.GetAll(r.Ctx, q, &users)
+	_, err := db.GetAll(ctx, q, &users)
 	if err != nil {
 		return nil, err
 	}
@@ -36,9 +35,9 @@ func (r *repository) GetAll() ([]*user.User, error) {
 	return users, nil
 }
 
-func (r *repository) GetByID(id int64) (*user.User, error) {
+func (r *repository) GetByID(ctx context.Context, id int64) (*user.User, error) {
 	u := &user.User{ID: id}
-	err := db.Get(r.Ctx, u)
+	err := db.Get(ctx, u)
 	if err != nil {
 		if err.Error() == "datastore: no such entity" {
 			return nil, user.ErrNoSuchEntity
@@ -49,13 +48,13 @@ func (r *repository) GetByID(id int64) (*user.User, error) {
 	return u, nil
 }
 
-func (r *repository) Create(u *user.User) error {
+func (r *repository) Create(ctx context.Context, u *user.User) error {
 	err := u.Validate()
 	if err != nil {
 		return user.ErrValidationFailed
 	}
 
-	return appDatastore.RunInTransaction(r.Ctx, func(tctx context.Context) error {
+	return appDatastore.RunInTransaction(ctx, func(tctx context.Context) error {
 		// check email uniqueness
 		if !canTakeUserEmail(tctx, u.Email) {
 			return user.ErrEmailCannotTake
@@ -91,14 +90,14 @@ func (r *repository) Create(u *user.User) error {
 	)
 }
 
-func (r *repository) Update(u *user.User) error {
+func (r *repository) Update(ctx context.Context, u *user.User) error {
 	err := u.Validate()
 	if err != nil {
 		return user.ErrValidationFailed
 	}
 
-	return appDatastore.RunInTransaction(r.Ctx, func(tctx context.Context) error {
-		oldUser, err := r.GetByID(u.ID)
+	return appDatastore.RunInTransaction(ctx, func(tctx context.Context) error {
+		oldUser, err := r.GetByID(tctx, u.ID)
 		if err != nil {
 			return err
 		}
@@ -133,10 +132,10 @@ func (r *repository) Update(u *user.User) error {
 	)
 }
 
-func (r *repository) Delete(u *user.User) error {
-	return appDatastore.RunInTransaction(r.Ctx, func(tctx context.Context) error {
+func (r *repository) Delete(ctx context.Context, u *user.User) error {
+	return appDatastore.RunInTransaction(ctx, func(tctx context.Context) error {
 		// lock user
-		txu, err := r.GetByID(u.ID)
+		txu, err := r.GetByID(tctx, u.ID)
 		if err != nil {
 			return err
 		}
@@ -164,7 +163,7 @@ func (r *repository) Delete(u *user.User) error {
 	)
 }
 
-func (r *repository) CreateFixture() ([]*user.User, error) {
+func (r *repository) CreateFixture(ctx context.Context) ([]*user.User, error) {
 	users := []*user.User{}
 
 	err := fixture.Load("users", &users)
@@ -174,7 +173,7 @@ func (r *repository) CreateFixture() ([]*user.User, error) {
 
 	// NOTE: run in out of txn by datastore (25 entities) limit
 	for _, u := range users {
-		r.Create(u)
+		r.Create(ctx, u)
 	}
 
 	return users, nil

@@ -22,7 +22,7 @@ var (
 
 // GetUsers returns users
 func GetUsers(ctx context.Context) ([]*user.User, error) {
-	users, err := user.NewRepository(ctx).GetAll()
+	users, err := user.NewRepository().GetAll(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, ErrGetUsers.Error())
 	}
@@ -32,7 +32,7 @@ func GetUsers(ctx context.Context) ([]*user.User, error) {
 
 // GetUserByID returns user specified by id
 func GetUserByID(ctx context.Context, id int64) (*user.User, error) {
-	u, err := user.NewRepository(ctx).GetByID(id)
+	u, err := user.NewRepository().GetByID(ctx, id)
 	if err != nil {
 		return nil, errors.Wrap(err, ErrGetUserByID.Error())
 	}
@@ -44,7 +44,7 @@ func GetUserByID(ctx context.Context, id int64) (*user.User, error) {
 func CreateUser(ctx context.Context, req user.CreateUserValue) (*user.User, error) {
 	u := user.NewFactory().Create(*req.Email, *req.ScreenName, *req.Age)
 
-	err := user.NewRepository(ctx).Create(u)
+	err := user.NewRepository().Create(ctx, u)
 	if err != nil {
 		return nil, errors.Wrap(err, ErrCreateUser.Error())
 	}
@@ -54,7 +54,8 @@ func CreateUser(ctx context.Context, req user.CreateUserValue) (*user.User, erro
 
 // UpdateUser updates user from request
 func UpdateUser(ctx context.Context, id int64, req user.UpdateUserValue) (*user.User, error) {
-	u, err := user.NewRepository(ctx).GetByID(id)
+	r := user.NewRepository()
+	u, err := r.GetByID(ctx, id)
 	if err != nil {
 		return nil, errors.Wrap(err, ErrUpdateUser.Error())
 	}
@@ -64,7 +65,7 @@ func UpdateUser(ctx context.Context, id int64, req user.UpdateUserValue) (*user.
 		return nil, user.ErrNothingToUpdate
 	}
 
-	err = user.NewRepository(ctx).Update(u)
+	err = r.Update(ctx, u)
 	if err != nil {
 		return nil, errors.Wrap(err, ErrUpdateUser.Error())
 	}
@@ -74,12 +75,13 @@ func UpdateUser(ctx context.Context, id int64, req user.UpdateUserValue) (*user.
 
 // DeleteUser deletes user specified by id
 func DeleteUser(ctx context.Context, id int64) error {
-	u, err := user.NewRepository(ctx).GetByID(id)
+	r := user.NewRepository()
+	u, err := r.GetByID(ctx, id)
 	if err != nil {
 		return errors.Wrap(err, ErrDeleteUser.Error())
 	}
 
-	err = user.NewRepository(ctx).Delete(u)
+	err = r.Delete(ctx, u)
 	if err != nil {
 		return errors.Wrap(err, ErrUpdateUser.Error())
 	}

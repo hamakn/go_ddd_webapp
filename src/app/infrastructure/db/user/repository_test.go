@@ -17,8 +17,8 @@ func TestCreate(t *testing.T) {
 	require.Nil(t, err)
 
 	f := user.NewFactory()
-	r := NewRepository(ctx)
-	_, err = r.CreateFixture()
+	r := NewRepository()
+	_, err = r.CreateFixture(ctx)
 	require.Nil(t, err)
 
 	testCases := []struct {
@@ -72,7 +72,7 @@ func TestCreate(t *testing.T) {
 
 	for _, testCase := range testCases {
 		u := f.Create(testCase.email, testCase.screenName, testCase.age)
-		err := r.Create(u)
+		err := r.Create(ctx, u)
 
 		if testCase.hasError {
 			require.NotNil(t, err)
@@ -89,8 +89,8 @@ func TestUpdate(t *testing.T) {
 	defer done()
 	require.Nil(t, err)
 
-	r := NewRepository(ctx)
-	_, err = r.CreateFixture()
+	r := NewRepository()
+	_, err = r.CreateFixture(ctx)
 	require.Nil(t, err)
 
 	now := time.Now()
@@ -146,7 +146,7 @@ func TestUpdate(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		u, err := r.GetByID(testCase.userID)
+		u, err := r.GetByID(ctx, testCase.userID)
 		require.Nil(t, err)
 
 		oldEmail := u.Email
@@ -155,7 +155,7 @@ func TestUpdate(t *testing.T) {
 		u.Email = testCase.email
 		u.ScreenName = testCase.screenName
 		u.Age = newAge
-		err = r.Update(u)
+		err = r.Update(ctx, u)
 
 		if testCase.hasError {
 			require.NotNil(t, err)
@@ -164,7 +164,7 @@ func TestUpdate(t *testing.T) {
 		} else {
 			require.Nil(t, err)
 
-			u, err := r.GetByID(testCase.userID)
+			u, err := r.GetByID(ctx, testCase.userID)
 			require.Nil(t, err)
 			require.Equal(t, testCase.email, u.Email)
 			require.Equal(t, testCase.screenName, u.ScreenName)
@@ -185,8 +185,8 @@ func TestDelete(t *testing.T) {
 	defer done()
 	require.Nil(t, err)
 
-	r := NewRepository(ctx)
-	_, err = r.CreateFixture()
+	r := NewRepository()
+	_, err = r.CreateFixture(ctx)
 	require.Nil(t, err)
 
 	testCases := []struct {
@@ -201,12 +201,12 @@ func TestDelete(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		u, err := r.GetByID(testCase.userID)
+		u, err := r.GetByID(ctx, testCase.userID)
 		require.Nil(t, err)
 
 		deleteEmail := u.Email
 		deleteScreenName := u.ScreenName
-		err = r.Delete(u)
+		err = r.Delete(ctx, u)
 
 		if testCase.hasError {
 			require.NotNil(t, err)
@@ -214,7 +214,7 @@ func TestDelete(t *testing.T) {
 		} else {
 			require.Nil(t, err)
 
-			_, err := r.GetByID(testCase.userID)
+			_, err := r.GetByID(ctx, testCase.userID)
 			require.Equal(t, user.ErrNoSuchEntity, err)
 
 			require.Equal(t, true, canTakeUserEmail(ctx, deleteEmail))
@@ -228,8 +228,8 @@ func TestCreateFixture(t *testing.T) {
 	defer done()
 	require.Nil(t, err)
 
-	r := NewRepository(ctx)
-	users, err := r.CreateFixture()
+	r := NewRepository()
+	users, err := r.CreateFixture(ctx)
 
 	require.Nil(t, err)
 	require.Equal(t, 2, len(users))
