@@ -149,7 +149,7 @@ func TestCreateUser(t *testing.T) {
 			r := user.CreateUserValue{}
 			json.NewDecoder(strings.NewReader(testCase.PostJSON)).Decode(&r)
 
-			dbu, err := user.NewRepository(ctx).GetByID(u.ID)
+			dbu, err := user.NewRepository().GetByID(ctx, u.ID)
 			require.Nil(t, err)
 
 			require.Equal(t, *r.Email, dbu.Email)
@@ -254,7 +254,7 @@ func TestUpdateUser(t *testing.T) {
 			r := user.UpdateUserValue{}
 			json.NewDecoder(strings.NewReader(testCase.PostJSON)).Decode(&r)
 
-			dbu, err := user.NewRepository(ctx).GetByID(u.ID)
+			dbu, err := user.NewRepository().GetByID(ctx, u.ID)
 			require.Nil(t, err)
 
 			if r.Email != nil {
@@ -323,14 +323,14 @@ func TestDeleteUser(t *testing.T) {
 			id, err := strconv.ParseInt(testCase.UserID, 10, 64)
 			require.Nil(t, err)
 
-			_, err = user.NewRepository(ctx).GetByID(id)
+			_, err = user.NewRepository().GetByID(ctx, id)
 			require.Equal(t, user.ErrNoSuchEntity, err)
 		}
 	}
 }
 
 func loadUserFixture(ctx context.Context) error {
-	r := user.NewRepository(ctx)
-	_, err := r.CreateFixture()
+	r := user.NewRepository()
+	_, err := r.CreateFixture(ctx)
 	return err
 }

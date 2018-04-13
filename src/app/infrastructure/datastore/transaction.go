@@ -17,7 +17,8 @@ func RunInTransaction(ctx context.Context, f func(context.Context) error, xg boo
 
 		return datastore.RunInTransaction(ctx, func(tctx netContext.Context) error {
 			// cast: old context => modern context
-			return f(context.Context(tctx))
+			mctx := context.Context(tctx) // for gsc
+			return f(mctx)
 		}, &datastore.TransactionOptions{
 			XG:       xg,
 			Attempts: 1,
