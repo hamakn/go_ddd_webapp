@@ -22,6 +22,7 @@ func (c *ContextSetter) ServeHTTP(w http.ResponseWriter, r *http.Request, next h
 	// refs:
 	//   https://groups.google.com/forum/#!topic/google-appengine-go/Av7Lg956D6Y
 	//   https://qiita.com/tenntenn/items/0b92fc089f8826fabaf1
-	ctx := appengine.WithContext(r.Context(), r)
+	ctx := r.Context()                  // for gsc
+	ctx = appengine.WithContext(ctx, r) // for gsc
 	next(w, r.WithContext(ctx))
 }
