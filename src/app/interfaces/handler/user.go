@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 
@@ -26,8 +27,8 @@ var (
 
 // GetUsers is handler to handle getting users request
 func GetUsers() func(http.ResponseWriter, *http.Request) {
-	return createAppHandler(func(w http.ResponseWriter, r *http.Request) (*response.Response, *appError) {
-		users, err := application.GetUsers(r.Context())
+	return createAppHandler(func(ctx context.Context, w http.ResponseWriter, r *http.Request) (*response.Response, *appError) {
+		users, err := application.GetUsers(ctx)
 		if err != nil {
 			return nil, &appError{errors.Wrap(err, ErrGetUsers.Error()), "internal server error", http.StatusInternalServerError}
 		}
@@ -43,14 +44,14 @@ func GetUsers() func(http.ResponseWriter, *http.Request) {
 
 // GetUser is handler to handle getting user request
 func GetUser() func(http.ResponseWriter, *http.Request) {
-	return createAppHandler(func(w http.ResponseWriter, r *http.Request) (*response.Response, *appError) {
+	return createAppHandler(func(ctx context.Context, w http.ResponseWriter, r *http.Request) (*response.Response, *appError) {
 		vars := mux.Vars(r)
 		id, err := strconv.ParseInt(vars["id"], 10, 64)
 		if err != nil {
 			return nil, &appError{err, "Bad Request", http.StatusBadRequest}
 		}
 
-		u, err := application.GetUserByID(r.Context(), id)
+		u, err := application.GetUserByID(ctx, id)
 		if err != nil {
 			switch errors.Cause(err) {
 			case user.ErrNoSuchEntity:
@@ -71,14 +72,14 @@ func GetUser() func(http.ResponseWriter, *http.Request) {
 
 // CreateUser is handler to handle create user request
 func CreateUser() func(http.ResponseWriter, *http.Request) {
-	return createAppHandler(func(w http.ResponseWriter, r *http.Request) (*response.Response, *appError) {
+	return createAppHandler(func(ctx context.Context, w http.ResponseWriter, r *http.Request) (*response.Response, *appError) {
 		req := user.CreateUserValue{}
 		err := parseRequest(r, &req)
 		if err != nil {
 			return nil, &appError{errors.Wrap(err, ErrCreateUser.Error()), "Bad Request", http.StatusBadRequest}
 		}
 
-		u, err := application.CreateUser(r.Context(), req)
+		u, err := application.CreateUser(ctx, req)
 		if err != nil {
 			switch errors.Cause(err) {
 			case user.ErrValidationFailed:
@@ -101,7 +102,7 @@ func CreateUser() func(http.ResponseWriter, *http.Request) {
 
 // UpdateUser is hanlder to handle update user request
 func UpdateUser() func(http.ResponseWriter, *http.Request) {
-	return createAppHandler(func(w http.ResponseWriter, r *http.Request) (*response.Response, *appError) {
+	return createAppHandler(func(ctx context.Context, w http.ResponseWriter, r *http.Request) (*response.Response, *appError) {
 		vars := mux.Vars(r)
 		id, err := strconv.ParseInt(vars["id"], 10, 64)
 		if err != nil {
@@ -114,7 +115,7 @@ func UpdateUser() func(http.ResponseWriter, *http.Request) {
 			return nil, &appError{errors.Wrap(err, ErrUpdateUser.Error()), "Bad Request", http.StatusBadRequest}
 		}
 
-		u, err := application.UpdateUser(r.Context(), id, req)
+		u, err := application.UpdateUser(ctx, id, req)
 		if err != nil {
 			switch errors.Cause(err) {
 			case user.ErrNoSuchEntity:
@@ -139,14 +140,14 @@ func UpdateUser() func(http.ResponseWriter, *http.Request) {
 
 // DeleteUser is handler to handle delete user request
 func DeleteUser() func(http.ResponseWriter, *http.Request) {
-	return createAppHandler(func(w http.ResponseWriter, r *http.Request) (*response.Response, *appError) {
+	return createAppHandler(func(ctx context.Context, w http.ResponseWriter, r *http.Request) (*response.Response, *appError) {
 		vars := mux.Vars(r)
 		id, err := strconv.ParseInt(vars["id"], 10, 64)
 		if err != nil {
 			return nil, &appError{errors.Wrap(err, ErrDeleteUser.Error()), "Bad Request", http.StatusBadRequest}
 		}
 
-		err = application.DeleteUser(r.Context(), id)
+		err = application.DeleteUser(ctx, id)
 		if err != nil {
 			switch errors.Cause(err) {
 			case user.ErrNoSuchEntity:

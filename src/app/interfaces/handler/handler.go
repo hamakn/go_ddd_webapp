@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -17,17 +18,18 @@ type appError struct {
 	Code    int
 }
 
-func createAppHandler(f func(http.ResponseWriter, *http.Request) (*response.Response, *appError)) func(http.ResponseWriter, *http.Request) {
+func createAppHandler(f func(context.Context, http.ResponseWriter, *http.Request) (*response.Response, *appError)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		res, apperr := f(w, r)
+		ctx := r.Context()
+		res, apperr := f(ctx, w, r)
 
 		w.Header().Set("Content-Type", "application/json")
 
 		if apperr != nil {
-			log.Errorf(r.Context(), "%#v", apperr.Error)
+			log.Errorf(ctx, "%#v", apperr.Error)
 
 			if err := WriteErrorResponse(w, apperr.Code, apperr.Message); err != nil {
-				log.Errorf(r.Context(), "%#v", errors.Wrap(apperr.Error, err.Error()))
+				log.Errorf(ctx, "%#v", errors.Wrap(apperr.Error, err.Error()))
 			}
 
 			return
@@ -40,7 +42,7 @@ func createAppHandler(f func(http.ResponseWriter, *http.Request) (*response.Resp
 
 		_, err := w.Write(res.Body)
 		if err != nil {
-			log.Errorf(r.Context(), "%#v", err)
+			log.Errorf(ctx, "%#v", err)
 		}
 	}
 }
