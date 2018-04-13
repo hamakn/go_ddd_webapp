@@ -78,7 +78,7 @@ func deleteUserEmail(ctx context.Context, email string, userID int64) error {
 	return appDatastore.RunInTransaction(ctx, func(tctx context.Context) error {
 		// lock old userEmail
 		old := userEmail{}
-		err := datastore.Get(tctx, userEmailKey(tctx, email), &old)
+		err := datastore.Get(tctx, userEmailKey(ctx, email), &old)
 		if err != nil {
 			return err
 		}
