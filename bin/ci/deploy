@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -eu
+
+# get gcloud access token
+echo $PROD_GCLOUD_SERVICE_KEY | base64 -d -i > ${HOME}/gcloud-service-key.json
+gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
+gcloud config set project $PROD_PROJECT_NAME
+access_token=$(gcloud auth print-access-token 2> /dev/null)
+
+# deploy
+appcfg.py update ./config/app.yaml --application=$PROD_PROJECT_NAME --version=master --oauth2_access_token=${access_token}
