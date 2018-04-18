@@ -8,6 +8,7 @@ import (
 
 	"github.com/hamakn/go_ddd_webapp/src/app/domain/user"
 	appDatastore "github.com/hamakn/go_ddd_webapp/src/app/infrastructure/datastore"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/appengine/datastore"
 )
 
@@ -58,17 +59,16 @@ func updateUserEmail(ctx context.Context, u *user.User, oldEmail string) error {
 			return user.ErrEmailCannotTake
 		}
 
-		err := deleteUserEmail(tctx, oldEmail, u.ID)
-		if err != nil {
-			return err
-		}
-
-		err = takeUserEmail(tctx, newUserEmail(u))
-		if err != nil {
-			return err
-		}
-
-		return nil
+		var eg errgroup.Group
+		eg.Go(func() error {
+			tctx := tctx
+			return deleteUserEmail(tctx, oldEmail, u.ID)
+		})
+		eg.Go(func() error {
+			tctx := tctx
+			return takeUserEmail(tctx, newUserEmail(u))
+		})
+		return eg.Wait()
 	},
 		true, // XG
 	)

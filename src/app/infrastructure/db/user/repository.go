@@ -8,6 +8,7 @@ import (
 	appDatastore "github.com/hamakn/go_ddd_webapp/src/app/infrastructure/datastore"
 	"github.com/hamakn/go_ddd_webapp/src/app/infrastructure/db"
 	"github.com/hamakn/go_ddd_webapp/src/app/infrastructure/fixture"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/appengine/datastore"
 )
 
@@ -55,36 +56,56 @@ func (r *repository) Create(ctx context.Context, u *user.User) error {
 	}
 
 	return appDatastore.RunInTransaction(ctx, func(tctx context.Context) error {
-		// check email uniqueness
-		if !canTakeUserEmail(tctx, u.Email) {
-			return user.ErrEmailCannotTake
-		}
+		var eg errgroup.Group
 
-		// check screen_name uniquness
-		if !canTakeUserScreenName(tctx, u.ScreenName) {
-			return user.ErrScreenNameCannotTake
-		}
-
-		err := db.Put(tctx, u)
-		if err != nil {
+		eg.Go(func() error {
+			// check email uniqueness
+			tctx := tctx
+			if !canTakeUserEmail(tctx, u.Email) {
+				return user.ErrEmailCannotTake
+			}
+			return nil
+		})
+		eg.Go(func() error {
+			// check screen_name uniquness
+			tctx := tctx
+			if !canTakeUserScreenName(tctx, u.ScreenName) {
+				return user.ErrScreenNameCannotTake
+			}
+			return nil
+		})
+		eg.Go(func() error {
+			// Put user
+			tctx := tctx
+			return db.Put(tctx, u)
+		})
+		if err := eg.Wait(); err != nil {
 			return err
 		}
 
-		// take email
+		// create userEmail and userScreenName after u.ID assigned
 		userEmail := newUserEmail(u)
-		err = takeUserEmail(tctx, userEmail)
-		if err != nil {
-			return user.ErrEmailCannotTake
-		}
-
-		// take screen_name
 		userScreenName := newUserScreenName(u)
-		err = takeUserScreenName(tctx, userScreenName)
-		if err != nil {
-			return user.ErrScreenNameCannotTake
-		}
 
-		return nil
+		eg.Go(func() error {
+			// take email
+			tctx := tctx
+			err = takeUserEmail(tctx, userEmail)
+			if err != nil {
+				return user.ErrEmailCannotTake
+			}
+			return nil
+		})
+		eg.Go(func() error {
+			// take screen_name
+			tctx := tctx
+			err = takeUserScreenName(tctx, userScreenName)
+			if err != nil {
+				return user.ErrScreenNameCannotTake
+			}
+			return nil
+		})
+		return eg.Wait()
 	},
 		true, // XG
 	)
@@ -97,36 +118,40 @@ func (r *repository) Update(ctx context.Context, u *user.User) error {
 	}
 
 	return appDatastore.RunInTransaction(ctx, func(tctx context.Context) error {
+		// get oldUser to get old email and screen name
 		oldUser, err := r.GetByID(tctx, u.ID)
 		if err != nil {
 			return err
 		}
 
-		// userEmail
-		if oldUser.Email != u.Email {
-			err := updateUserEmail(tctx, u, oldUser.Email)
-			if err != nil {
-				return err
+		var eg errgroup.Group
+
+		eg.Go(func() error {
+			// userEmail
+			tctx := tctx
+			if oldUser.Email != u.Email {
+				return updateUserEmail(tctx, u, oldUser.Email)
 			}
-		}
-
-		// userScreenName
-		if oldUser.ScreenName != u.ScreenName {
-			err := updateUserScreenName(tctx, u, oldUser.ScreenName)
-			if err != nil {
-				return err
+			return nil
+		})
+		eg.Go(func() error {
+			// userScreenName
+			tctx := tctx
+			if oldUser.ScreenName != u.ScreenName {
+				return updateUserScreenName(tctx, u, oldUser.ScreenName)
 			}
-		}
+			return nil
+		})
+		eg.Go(func() error {
+			// Update user
+			tctx := tctx
 
-		// TODO: rollback if error occurred
-		u.UpdatedAt = time.Now()
+			// TODO: rollback if error occurred
+			u.UpdatedAt = time.Now()
 
-		err = db.Put(tctx, u)
-		if err != nil {
-			return err
-		}
-
-		return nil
+			return db.Put(tctx, u)
+		})
+		return eg.Wait()
 	},
 		true, // XG
 	)
@@ -134,30 +159,29 @@ func (r *repository) Update(ctx context.Context, u *user.User) error {
 
 func (r *repository) Delete(ctx context.Context, u *user.User) error {
 	return appDatastore.RunInTransaction(ctx, func(tctx context.Context) error {
-		// lock user
-		txu, err := r.GetByID(tctx, u.ID)
-		if err != nil {
-			return err
-		}
+		var eg errgroup.Group
 
-		// userEmail
-		err = deleteUserEmail(tctx, u.Email, txu.ID)
-		if err != nil {
-			return err
-		}
-
-		// userScreenName
-		err = deleteUserScreenName(tctx, u.ScreenName, txu.ID)
-		if err != nil {
-			return err
-		}
-
-		err = db.Delete(tctx, txu)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		eg.Go(func() error {
+			// userEmail
+			tctx := tctx
+			return deleteUserEmail(tctx, u.Email, u.ID)
+		})
+		eg.Go(func() error {
+			// userScreenName
+			tctx := tctx
+			return deleteUserScreenName(tctx, u.ScreenName, u.ID)
+		})
+		eg.Go(func() error {
+			// delete user
+			tctx := tctx
+			// lock user
+			txu, err := r.GetByID(tctx, u.ID)
+			if err != nil {
+				return err
+			}
+			return db.Delete(tctx, txu)
+		})
+		return eg.Wait()
 	},
 		true, // XG
 	)

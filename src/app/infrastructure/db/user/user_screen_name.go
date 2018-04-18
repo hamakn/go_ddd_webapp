@@ -8,6 +8,7 @@ import (
 
 	"github.com/hamakn/go_ddd_webapp/src/app/domain/user"
 	appDatastore "github.com/hamakn/go_ddd_webapp/src/app/infrastructure/datastore"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/appengine/datastore"
 )
 
@@ -58,17 +59,16 @@ func updateUserScreenName(ctx context.Context, u *user.User, oldScreenName strin
 			return user.ErrScreenNameCannotTake
 		}
 
-		err := deleteUserScreenName(tctx, oldScreenName, u.ID)
-		if err != nil {
-			return err
-		}
-
-		err = takeUserScreenName(tctx, newUserScreenName(u))
-		if err != nil {
-			return err
-		}
-
-		return nil
+		var eg errgroup.Group
+		eg.Go(func() error {
+			tctx := tctx
+			return deleteUserScreenName(tctx, oldScreenName, u.ID)
+		})
+		eg.Go(func() error {
+			tctx := tctx
+			return takeUserScreenName(tctx, newUserScreenName(u))
+		})
+		return eg.Wait()
 	},
 		true, // XG
 	)
