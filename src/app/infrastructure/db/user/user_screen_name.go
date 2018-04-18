@@ -39,7 +39,7 @@ func userScreenNameKeyString(screenName string) string {
 func canTakeUserScreenName(ctx context.Context, screenName string) bool {
 	k := userScreenNameKey(ctx, screenName)
 	err := datastore.Get(ctx, k, &userScreenName{})
-	if err != nil && err.Error() == "datastore: no such entity" {
+	if err != nil && err == datastore.ErrNoSuchEntity {
 		return true
 	}
 	return false

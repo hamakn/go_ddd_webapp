@@ -39,7 +39,7 @@ func (r *repository) GetByID(ctx context.Context, id int64) (*user.User, error) 
 	u := &user.User{ID: id}
 	err := db.Get(ctx, u)
 	if err != nil {
-		if err.Error() == "datastore: no such entity" {
+		if err == datastore.ErrNoSuchEntity {
 			return nil, user.ErrNoSuchEntity
 		}
 		return nil, err

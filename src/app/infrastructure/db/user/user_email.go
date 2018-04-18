@@ -39,7 +39,7 @@ func userEmailKeyString(email string) string {
 func canTakeUserEmail(ctx context.Context, email string) bool {
 	k := userEmailKey(ctx, email)
 	err := datastore.Get(ctx, k, &userEmail{})
-	if err != nil && err.Error() == "datastore: no such entity" {
+	if err != nil && err == datastore.ErrNoSuchEntity {
 		return true
 	}
 	return false
