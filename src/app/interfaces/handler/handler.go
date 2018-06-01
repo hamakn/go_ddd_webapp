@@ -61,10 +61,7 @@ func WriteErrorResponse(w http.ResponseWriter, code int, message string) error {
 }
 
 func isEmptyResponse(res *response.Response) bool {
-	if len(res.Body) == 0 {
-		return true
-	}
-	return false
+	return len(res.Body) == 0
 }
 
 func parseRequest(r *http.Request, request interface{}) error {
