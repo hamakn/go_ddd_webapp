@@ -24,6 +24,8 @@ jobs:
       - checkout
       - run: go get -u github.com/golang/dep/cmd/dep
       - run: go get -u golang.org/x/lint/golint
+      - run: go get -u honnef.co/go/tools/cmd/gosimple
+      - run: go get -u honnef.co/go/tools/cmd/staticcheck
       - run: go get -u github.com/daisuzu/gsc
       - run: dep ensure -vendor-only
       - type: cache-save
