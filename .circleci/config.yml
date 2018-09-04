@@ -1,9 +1,25 @@
 version: 2
-jobs:
+
+workflows:
+  version: 2
   build:
-    working_directory: /go/src/github.com/hamakn/go_ddd_webapp
-    docker:
-      - image: mercari/appengine-go:1.8
+    jobs:
+      - test
+      - deploy:
+          requires:
+            - test
+          filters:
+            branches:
+              only: master
+
+job_defaults: &job_defaults
+  working_directory: /go/src/github.com/hamakn/go_ddd_webapp
+  docker:
+    - image: mercari/appengine-go:1.9
+
+jobs:
+  test:
+    <<: *job_defaults
     steps:
       - checkout
       - run: go get -u github.com/golang/dep/cmd/dep
@@ -19,3 +35,11 @@ jobs:
       - run: go vet ./config/... ./src/...
       - run: gsc -tests=false ./config/... ./src/...
       - run: goapp test ./config/... ./src/...
+
+  deploy:
+    <<: *job_defaults
+    steps:
+      - checkout
+      - type: cache-restore
+        key: dep-cache-{{ checksum "Gopkg.lock" }}
+      - run: ./bin/ci/deploy
